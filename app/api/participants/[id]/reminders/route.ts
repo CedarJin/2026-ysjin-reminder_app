@@ -93,7 +93,15 @@ export async function POST(
       duplicates_skipped: totalDuplicates,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    let message: string;
+    if (error instanceof Error) {
+      message = error.message;
+    } else if (typeof error === 'string') {
+      message = error;
+    } else {
+      message = 'Unknown error: ' + JSON.stringify(error);
+    }
+    console.error('/api/participants/[id]/reminders error:', message, error);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
