@@ -123,8 +123,8 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
   });
 
   const SortIcon = ({ column }: { column: SortKey }) => {
-    if (sortKey !== column) return <span className="ml-1 text-gray-300">&#8597;</span>;
-    return <span className="ml-1">{sortDir === 'asc' ? '&#8593;' : '&#8595;'}</span>;
+    if (sortKey !== column) return <span className="ml-1 text-gray-300">↕</span>;
+    return <span className="ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>;
   };
 
   if (jobs.length === 0) {
