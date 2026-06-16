@@ -110,7 +110,7 @@ export async function sendReminderJob(
   if (!disableSending) {
     const result = await sendEmailViaProvider({
       to: participant.email,
-      cc: 'ysjin@health.ucdavis.edu',
+      cc: ['ysjin@health.ucdavis.edu', 'qbsun@health.ucdavis.edu'],
       subject,
       body,
       fromEmail: options.fromEmail,
