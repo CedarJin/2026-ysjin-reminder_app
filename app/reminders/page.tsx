@@ -36,10 +36,16 @@ function formatDateTime(iso: string | null | undefined): string {
   });
 }
 
+function isOverdue(job: ReminderJob): boolean {
+  if (job.status !== 'scheduled') return false;
+  return Date.now() - new Date(job.scheduled_send_datetime).getTime() > 12 * 60 * 60 * 1000;
+}
+
 export default function RemindersPage() {
   const [jobs, setJobs] = useState<ReminderJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [showOverdueOnly, setShowOverdueOnly] = useState(false);
 
   const loadJobs = () => {
     setLoading(true);
@@ -57,6 +63,11 @@ export default function RemindersPage() {
     loadJobs();
   }, [statusFilter]);
 
+  const handleFilter = (key: string) => {
+    setShowOverdueOnly(false);
+    setStatusFilter(key === 'all' ? '' : key);
+  };
+
   const handleSend = async (jobId: string) => {
     const res = await fetch(`/api/reminders/${jobId}/send`, { method: 'POST' });
     const result = await res.json();
@@ -66,7 +77,9 @@ export default function RemindersPage() {
 
   const canSend = (s: string) => ['scheduled', 'failed'].includes(s);
 
-  const sorted = [...jobs].sort(
+  const filtered = showOverdueOnly ? jobs.filter(isOverdue) : jobs;
+
+  const sorted = [...filtered].sort(
     (a, b) => new Date(b.scheduled_send_datetime).getTime() - new Date(a.scheduled_send_datetime).getTime()
   );
 
@@ -85,15 +98,16 @@ export default function RemindersPage() {
       </div>
 
       <div className="mb-4 flex gap-2 flex-wrap">
-        {['', 'scheduled', 'sent', 'failed'].map((s) => (
+        {[{ k: 'all', l: 'All' }, { k: 'scheduled', l: 'Scheduled' }, { k: 'overdue', l: 'Overdue' }, { k: 'sent', l: 'Sent' }, { k: 'failed', l: 'Failed' }].map(({ k, l }) => (
           <button
-            key={s}
-            onClick={() => setStatusFilter(s)}
+            key={k}
+            onClick={() => k === 'overdue' ? (setShowOverdueOnly(true), setStatusFilter('')) : handleFilter(k)}
             className={`px-3 py-1 text-sm rounded-md ${
-              statusFilter === s ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              (k === 'overdue' ? showOverdueOnly : statusFilter === k)
+                ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            {s || 'All'}
+            {l}
           </button>
         ))}
         <span className="text-sm text-gray-500 ml-2 self-center">{jobs.length} jobs</span>
@@ -109,14 +123,17 @@ export default function RemindersPage() {
                 <th className="px-4 py-3">Email</th>
                 <th className="px-4 py-3">Phase</th>
                 <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Overdue</th>
                 <th className="px-4 py-3">Scheduled</th>
                 <th className="px-4 py-3">Sent</th>
                 <th className="px-4 py-3">Action</th>
               </tr>
             </thead>
             <tbody>
-              {sorted.map((job) => (
-                <tr key={job.id} className="border-b last:border-0 hover:bg-gray-50">
+              {sorted.map((job) => {
+                const overdue = isOverdue(job);
+                return (
+                <tr key={job.id} className={`border-b last:border-0 hover:bg-gray-50 ${overdue ? 'bg-red-50' : ''}`}>
                   <td className="px-4 py-3 max-w-[250px] truncate">{job.email_name}</td>
                   <td className="px-4 py-3">
                     <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100">
@@ -127,6 +144,13 @@ export default function RemindersPage() {
                     <span className={`text-xs px-2 py-0.5 rounded font-medium ${STATUS_COLORS[job.status] || 'bg-gray-100'}`}>
                       {job.status.replace('_', ' ')}
                     </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {overdue ? (
+                      <span className="text-xs px-2 py-0.5 rounded font-medium bg-red-200 text-red-800">overdue</span>
+                    ) : (
+                      <span className="text-xs text-gray-300">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">{formatDateTime(job.scheduled_send_datetime)}</td>
                   <td className="px-4 py-3 whitespace-nowrap">{formatDateTime(job.sent_at)}</td>
@@ -141,7 +165,8 @@ export default function RemindersPage() {
                     )}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
               {sorted.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-gray-500">No reminder jobs found.</td>
