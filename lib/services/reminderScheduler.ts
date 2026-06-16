@@ -128,14 +128,6 @@ export async function generateReminderJobs(
       continue;
     }
 
-    let status: ReminderJob['status'] = 'scheduled';
-    let reason: string | undefined;
-
-    if (sendDatetime < now) {
-      status = 'pending_review';
-      reason = 'Send time is in the past';
-    }
-
     const job = await repos.createReminderJob({
       reminder_id: generateReminderId(),
       participant_id: participant.id,
@@ -151,10 +143,10 @@ export async function generateReminderJobs(
       visit_date_snapshot: visit.scheduled_date,
       visit_time_snapshot: visit.scheduled_time,
       visit_datetime_snapshot: visitDatetimeSnapshot.toISOString(),
-      status,
+      status: 'scheduled' as const,
       sent_at: null,
       canceled_at: null,
-      canceled_reason: reason || null,
+      canceled_reason: null,
       provider_message_id: null,
       last_error: null,
     });
