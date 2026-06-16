@@ -1,0 +1,47 @@
+{
+  "name": "clinical-trial-reminder-system",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "vitest",
+    "db:seed": "tsx db/seed/seedAll.ts",
+    "trigger:dev": "trigger dev"
+  },
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.3",
+    "@supabase/auth-helpers-nextjs": "^0.15.0",
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.43.5",
+    "@trigger.dev/sdk": "^3.0.0",
+    "@types/nodemailer": "^8.0.1",
+    "date-fns": "^3.6.0",
+    "date-fns-tz": "^3.1.3",
+    "next": "^14.2.4",
+    "nodemailer": "^9.0.0",
+    "papaparse": "^5.4.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "ws": "^8.21.0",
+    "xlsx": "^0.18.5",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "@types/papaparse": "^5.3.14",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/ws": "^8.18.1",
+    "autoprefixer": "^10.4.19",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.4",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.4",
+    "tsx": "^4.15.5",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}
