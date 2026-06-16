@@ -48,11 +48,6 @@ function getStatusRank(status: string): number {
   return 1;
 }
 
-interface Template {
-  template_id: string;
-  email_name: string;
-}
-
 export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: ReminderJobsPanelProps) {
   const [sending, setSending] = useState<string | null>(null);
   const [regenerating, setRegenerating] = useState(false);
@@ -61,16 +56,7 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDate, setEditDate] = useState('');
   const [editTime, setEditTime] = useState('');
-  const [editTemplate, setEditTemplate] = useState('');
-  const [templates, setTemplates] = useState<Template[]>([]);
   const [savingEdit, setSavingEdit] = useState(false);
-
-  useEffect(() => {
-    fetch('/api/templates')
-      .then((r) => r.json())
-      .then((data) => setTemplates(data))
-      .catch(() => {});
-  }, []);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -115,7 +101,6 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
     setEditingId(job.id);
     setEditDate(formatDateInput(job.scheduled_send_datetime));
     setEditTime(job.scheduled_send_time?.slice(0, 5) || '09:00');
-    setEditTemplate(job.template_id);
   };
 
   const cancelEdit = () => {
@@ -133,7 +118,6 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
           scheduled_send_date: editDate,
           scheduled_send_time: editTime,
           scheduled_send_datetime: newDatetime,
-          template_id: editTemplate,
         }),
       });
       if (!res.ok) {
@@ -251,7 +235,7 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
                     </td>
                     <td className="py-2 pr-3">{job.status}</td>
                     <td className="py-2 pr-3">—</td>
-                    <td className="py-2 pr-3">
+                    <td className="py-2 pr-3" colSpan={2}>
                       <input type="date" value={editDate}
                         onChange={(e) => setEditDate(e.target.value)}
                         className="text-xs border rounded px-1 py-0.5 w-28" />
@@ -259,15 +243,7 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
                         onChange={(e) => setEditTime(e.target.value)}
                         className="text-xs border rounded px-1 py-0.5 w-20 ml-1" />
                     </td>
-                    <td className="py-2 pr-3">—</td>
-                    <td className="py-2 pr-3">
-                      <select value={editTemplate} onChange={(e) => setEditTemplate(e.target.value)}
-                        className="text-xs border rounded px-1 py-0.5 max-w-[120px]">
-                        {templates.map((t) => (
-                          <option key={t.template_id} value={t.template_id}>{t.template_id}</option>
-                        ))}
-                      </select>
-                    </td>
+                    <td className="py-2 pr-3">{job.template_id}</td>
                     <td className="py-2 pr-3 whitespace-nowrap">
                       <button onClick={() => saveEdit(job.id)} disabled={savingEdit}
                         className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 mr-1">

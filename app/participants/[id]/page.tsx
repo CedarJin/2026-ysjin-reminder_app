@@ -117,7 +117,7 @@ export default function ParticipantDetailPage() {
   const { participant, visits, events, jobs } = data;
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-8">
+    <main className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex justify-between items-start mb-6">
         <div>
           <Link href="/participants" className="text-blue-600 hover:underline">← Back to Participants</Link>
