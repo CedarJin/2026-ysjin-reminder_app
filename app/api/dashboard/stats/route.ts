@@ -19,12 +19,22 @@ export async function GET() {
     const activeParticipants = allParticipants.filter((p) => p.status === 'active');
     const activeIds = activeParticipants.map((p) => p.id);
 
-    // Emails sent today
+    // Emails sent today — use direct counts instead of loading all jobs
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
-    const allJobs = await supabaseRepositories.listReminderJobs();
-    const emailsToday = allJobs.filter((j) => j.sent_at && new Date(j.sent_at) >= todayStart).length;
-    const failedEmails = allJobs.filter((j) => j.status === 'failed').length;
+    const todayStr = todayStart.toISOString();
+
+    const { count: emailsToday } = await supabase
+      .from('reminder_jobs')
+      .select('*', { count: 'exact', head: true })
+      .gte('sent_at', todayStr);
+
+    const { count: failedEmails } = await supabase
+      .from('reminder_jobs')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'failed');
+
+    const failedEmailCount = failedEmails ?? 0;
 
     // Upcoming visits this week
     const endOfWeek = new Date();
@@ -82,7 +92,7 @@ export async function GET() {
     );
     const recentReschedules = rescheduledVisits.length;
 
-    const needsAttention = missingDay90 + missingDay180 + (failedEmails > 0 ? 1 : 0);
+    const needsAttention = missingDay90 + missingDay180 + (failedEmailCount > 0 ? 1 : 0);
 
     return NextResponse.json({
       totalActive: activeParticipants.length,
@@ -90,7 +100,7 @@ export async function GET() {
       upcomingVisitsThisWeek: participantsWithUpcoming.size,
       missingDay90,
       missingDay180,
-      failedEmails,
+      failedEmails: failedEmailCount,
       recentReschedules,
       needsAttention,
     });
