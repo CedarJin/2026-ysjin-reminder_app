@@ -26,21 +26,36 @@ const PHASE_LABELS: Record<string, string> = {
   week18: 'Week 18',
 };
 
+type SortKey = 'email_name' | 'phase' | 'status' | 'scheduled_send_datetime' | 'sent_at';
+type SortDir = 'asc' | 'desc';
+
 function formatDateTime(iso: string | null | undefined): string {
   if (!iso) return '—';
-  const d = new Date(iso);
-  return d.toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  return new Date(iso).toLocaleString('en-US', {
+    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
   });
+}
+
+function getStatusRank(status: string): number {
+  // Unsent first
+  if (status === 'scheduled' || status === 'pending_review') return 0;
+  return 1;
 }
 
 export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: ReminderJobsPanelProps) {
   const [sending, setSending] = useState<string | null>(null);
   const [regenerating, setRegenerating] = useState(false);
+  const [sortKey, setSortKey] = useState<SortKey>('scheduled_send_datetime');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
 
   const handleSendNow = async (jobId: string) => {
     setSending(jobId);
@@ -80,6 +95,38 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
   const canSend = (status: string) =>
     status === 'scheduled' || status === 'pending_review' || status === 'failed';
 
+  const sorted = [...jobs].sort((a, b) => {
+    // Default: unsent first, then by send time ascending
+    const rankA = getStatusRank(a.status);
+    const rankB = getStatusRank(b.status);
+    if (rankA !== rankB) return rankA - rankB;
+
+    let cmp = 0;
+    switch (sortKey) {
+      case 'email_name':
+        cmp = a.email_name.localeCompare(b.email_name);
+        break;
+      case 'phase':
+        cmp = (a.phase || '').localeCompare(b.phase || '');
+        break;
+      case 'status':
+        cmp = a.status.localeCompare(b.status);
+        break;
+      case 'scheduled_send_datetime':
+        cmp = new Date(a.scheduled_send_datetime).getTime() - new Date(b.scheduled_send_datetime).getTime();
+        break;
+      case 'sent_at':
+        cmp = (a.sent_at || '').localeCompare(b.sent_at || '');
+        break;
+    }
+    return sortDir === 'asc' ? cmp : -cmp;
+  });
+
+  const SortIcon = ({ column }: { column: SortKey }) => {
+    if (sortKey !== column) return <span className="ml-1 text-gray-300">&#8597;</span>;
+    return <span className="ml-1">{sortDir === 'asc' ? '&#8593;' : '&#8595;'}</span>;
+  };
+
   if (jobs.length === 0) {
     return (
       <div className="bg-white p-4 rounded-lg shadow">
@@ -98,10 +145,6 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
     );
   }
 
-  const sorted = [...jobs].sort(
-    (a, b) => new Date(a.scheduled_send_datetime).getTime() - new Date(b.scheduled_send_datetime).getTime()
-  );
-
   return (
     <div className="bg-white p-4 rounded-lg shadow">
       <div className="flex justify-between items-center mb-3">
@@ -118,11 +161,21 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-xs text-gray-500 uppercase">
-              <th className="pb-2 pr-3">Email</th>
-              <th className="pb-2 pr-3">Phase</th>
-              <th className="pb-2 pr-3">Status</th>
-              <th className="pb-2 pr-3">Scheduled Send</th>
-              <th className="pb-2 pr-3">Sent At</th>
+              <th className="pb-2 pr-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('email_name')}>
+                Email <SortIcon column="email_name" />
+              </th>
+              <th className="pb-2 pr-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('phase')}>
+                Phase <SortIcon column="phase" />
+              </th>
+              <th className="pb-2 pr-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('status')}>
+                Status <SortIcon column="status" />
+              </th>
+              <th className="pb-2 pr-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('scheduled_send_datetime')}>
+                Scheduled Send <SortIcon column="scheduled_send_datetime" />
+              </th>
+              <th className="pb-2 pr-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('sent_at')}>
+                Sent At <SortIcon column="sent_at" />
+              </th>
               <th className="pb-2 pr-3">Template</th>
               <th className="pb-2 pr-3">Action</th>
             </tr>

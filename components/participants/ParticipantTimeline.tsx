@@ -14,11 +14,11 @@ export default function ParticipantTimeline({
   jobs,
 }: ParticipantTimelineProps) {
   const phases = [
-    { label: 'Day 0', day: 0 },
-    { label: 'Week 6', eventKey: 'week6_habitual_diet_start' },
-    { label: 'Day 90', day: 90 },
-    { label: 'Week 18', eventKey: 'week18_habitual_diet_start' },
-    { label: 'Day 180', day: 180 },
+    { label: 'Day 0', day: 0, phaseKey: 'day0' },
+    { label: 'Week 6', phaseKey: 'week6', eventKey: 'week6_habitual_diet_start' },
+    { label: 'Day 90', day: 90, phaseKey: 'day90' },
+    { label: 'Week 18', phaseKey: 'week18', eventKey: 'week18_habitual_diet_start' },
+    { label: 'Day 180', day: 180, phaseKey: 'day180' },
   ];
 
   return (
@@ -28,11 +28,16 @@ export default function ParticipantTimeline({
         const event = phase.eventKey
           ? events.find((e) => e.event_key === phase.eventKey)
           : null;
-        const phaseJobs = phase.day !== undefined
-          ? jobs.filter((j) => j.visit_id === visit?.id)
-          : event
-          ? jobs.filter((j) => j.rule_id.includes(phase.eventKey!.replace('_habitual_diet_start', '')))
-          : [];
+        // Filter jobs by phase so week6/week18 jobs don't appear under Day 0
+        const phaseJobs = jobs
+          .filter((j) => j.phase === phase.phaseKey)
+          .sort((a, b) => {
+            // Unsent (scheduled/pending_review) first, then by send time ascending
+            const aPending = a.status === 'scheduled' || a.status === 'pending_review' ? 0 : 1;
+            const bPending = b.status === 'scheduled' || b.status === 'pending_review' ? 0 : 1;
+            if (aPending !== bPending) return aPending - bPending;
+            return new Date(a.scheduled_send_datetime).getTime() - new Date(b.scheduled_send_datetime).getTime();
+          });
 
         return (
           <div key={phase.label} className="bg-white p-4 rounded-lg shadow">
