@@ -14,6 +14,8 @@ export async function PATCH(
     if (body.scheduled_send_datetime !== undefined) updateData.scheduled_send_datetime = body.scheduled_send_datetime;
     if (body.template_id !== undefined) updateData.template_id = body.template_id;
     if (body.status !== undefined) updateData.status = body.status;
+    if (body.canceled_at !== undefined) updateData.canceled_at = body.canceled_at;
+    if (body.canceled_reason !== undefined) updateData.canceled_reason = body.canceled_reason;
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ error: 'No fields to update' }, { status: 400 });

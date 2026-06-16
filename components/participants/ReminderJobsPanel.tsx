@@ -133,7 +133,23 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
     }
   };
 
-  const canSend = (status: string) => status === 'scheduled' || status === 'failed';
+  const handleCancel = async (jobId: string) => {
+    if (!confirm('Cancel this reminder email?')) return;
+    try {
+      const res = await fetch(`/api/reminders/${jobId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'canceled', canceled_at: new Date().toISOString(), canceled_reason: 'manual' }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        alert(`Cancel failed: ${err.error || 'Unknown error'}`);
+      }
+      onRefresh?.();
+    } catch (err) {
+      alert(`Network error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
 
   const sorted = [...jobs].sort((a, b) => {
     const rankA = getStatusRank(a.status);
@@ -290,7 +306,19 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
                     {job.template_id}
                   </td>
                   <td className="py-2 pr-3 whitespace-nowrap">
-                    {canSend(job.status) && (
+                    {job.status === 'scheduled' && (
+                      <>
+                        <button onClick={() => handleSendNow(job.id)} disabled={sending === job.id}
+                          className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 mr-1">
+                          {sending === job.id ? '...' : 'Send Now'}
+                        </button>
+                        <button onClick={() => handleCancel(job.id)}
+                          className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 mr-1">
+                          Cancel
+                        </button>
+                      </>
+                    )}
+                    {job.status === 'failed' && (
                       <button onClick={() => handleSendNow(job.id)} disabled={sending === job.id}
                         className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 mr-1">
                         {sending === job.id ? '...' : 'Send Now'}
