@@ -3,79 +3,79 @@
     {
       "template_id": "day0_scheduling",
       "email_name": "Scheduling: In-Person Study Visit Day 0",
-      "subject": "\u3010Study-Reminder\u3011Your Day 0 Study Visit Has Been Scheduled",
+      "subject": "[Study-Reminder]Your Day 0 Study Visit Has Been Scheduled",
       "body": "Hi {{first_name}},\n\nThis is a confirmation that your study day 0 has been scheduled for {{day0_visit_date}} at {{day0_visit_time}}.\n\nPlease make sure to start your 3-day patternized diet on {{day0_patternized_diet_start_date}} and collect your stool sample from the morning of {{day0_stool_sample_window_start_date}} to the morning of {{day0_stool_sample_window_end_date}}.\n\nThe in-person study visit will take around 4 hours and **you WILL BE dilated for eye exams**, so please plan proper transportation ahead of time.\n\nOur study team member will meet you in the lobby of the Tschannen Eye Institute and guide you through the entire study visit process.\n\nPlease do not hesitate to reach out should you have any questions or concerns. Thanks again for your time and willingness to participate in our study, and we hope you have a great rest of your week!\n\n{{email_signature}}"
     },
     {
       "template_id": "day0_rescheduling",
       "email_name": "Rescheduling: Study Day 0",
-      "subject": "\u3010Study-Reminder\u3011Rescheduling: Study Day 0",
+      "subject": "[Study-Reminder]Rescheduling: Study Day 0",
       "body": "Hi {{first_name}},\n\nYour study day 0 has been rescheduled from {{old_visit_date}} at {{old_visit_time}} to {{new_visit_date}} at {{new_visit_time}}.\n\nYour patternized diet will now start on {{new_patternized_diet_start_date}}, and you should collect your stool sample from the morning of {{new_stool_sample_window_start_date}} to the morning of {{new_stool_sample_window_end_date}}.\n\nThe in-person study visit will take around 4 hours and **you WILL BE dilated for eye exams**, so please plan proper transportation ahead of time.\n\nOur study team member will meet you in the lobby of the Tschannen Eye Institute and guide you through the entire study visit process.\n\nPlease do not hesitate to reach out if you have any questions or concerns.\n\n{{email_signature}}"
     },
     {
       "template_id": "day0_patternized_diet",
-      "email_name": "REMINDER: Patternized Diet Starts Tomorrow \u2014 Day 0",
-      "subject": "\u3010Study-Reminder\u3011Patternized Diet Starts Tomorrow \u2014 Day 0",
+      "email_name": "REMINDER: Patternized Diet Starts Tomorrow - Day 0",
+      "subject": "[Study-Reminder]Patternized Diet Starts Tomorrow - Day 0",
       "body": "Hi {{first_name}},\n\nJust a quick reminder that your 3-day patternized diet starts tomorrow. Please record all the foods and beverages you consume tomorrow on the food record sheet, as this will be your guide for the next two days. You'll need to follow the same diet as closely as possible leading up to your stool collection on your study day.\n\nThe goal of this patternized diet is to stabilize your gut microbiome so that we can accurately evaluate how the study interventions affect the composition of your gut microbes and their impact on eye health.\n\nPlease remember that your stool collection window is from the morning of {{day0_stool_sample_window_start_date}} to the morning of {{day0_stool_sample_window_end_date}}, before your study visit on {{day0_visit_date}}.\n\nIf you have any questions or need any assistance, please don't hesitate to reach out. Thank you for your cooperation!\n\n{{email_signature}}"
     },
     {
       "template_id": "day0_visit_reminder",
       "email_name": "REMINDER: Day 0 Study Visit",
-      "subject": "\u3010Study-Reminder\u3011Your Day 0 Study Visit Is Tomorrow",
+      "subject": "[Study-Reminder]Your Day 0 Study Visit Is Tomorrow",
       "body": "Hi {{first_name}},\n\nThis is a friendly reminder that your study day 0 visit is **tomorrow** at {{day0_visit_time}} and will take around 4 hours. Please remember to **bring your stool sample and the patternized diet record and arrive fasted** (your last bite of food should be **before {{day0_last_bite_date}} at {{day0_last_bite_time}}**). Please also stay hydrated before the visit by drinking at least 20 oz of water the morning of the study visit. You will be provided with some snacks after the blood draw, but you are also welcome to bring some snacks with you if you want.\n\nWe are located at the Tschannen Eye Institute, 4860 Y St #2400, Sacramento, CA 95817. If you are driving in, we have a parking garage available in the front of the building. Please take your parking ticket with you when you enter the building. We will validate the parking ticket for you. A member of our study team will meet you in the lobby when you arrive.\n\nPlease arrive on time to allow adequate time to complete all of the study day-related tasks. Thank you and see you **tomorrow**!\n\n{{email_signature}}"
     },
     {
       "template_id": "week6_habitual_diet",
-      "email_name": "REMINDER: Start Your 3-Day Habitual Diet \u2014 Week 6",
-      "subject": "\u3010Study-Reminder\u3011Start Your 3-Day Habitual Diet Record This Week",
+      "email_name": "REMINDER: Start Your 3-Day Habitual Diet - Week 6",
+      "subject": "[Study-Reminder]Start Your 3-Day Habitual Diet Record This Week",
       "body": "Hi {{first_name}},\n\nHope everything is going well!\n\nThis is a reminder that you will start recording your 3-day habitual diet this week (different from the patternized diet). The 3-day diet record should consist of two weekdays and one weekend. Please record everything you eat and drink, including all nibbles and snacks, no matter how small.\n\nHere are a few tips to help you:\n- **Maintain** your usual eating pattern during this time, and try not to change your diet because you are keeping a record.\n- **Record** everything you consume each day (24 hours), writing it down as soon as possible after eating or drinking.\n- **For meals eaten away** from home, do your best to estimate portion sizes, preparation methods, and ingredients. Indicate the name and type of the restaurant under \"Place\" in your record.\n- **Use the back of the page** if you need extra space, and feel free to fold up the daily record pages to take with you.\n\nIf you have any questions or need further clarification, please don't hesitate to reach out.\n\nThank you for your participation, and we look forward to receiving your completed records!\n\n{{email_signature}}"
     },
     {
       "template_id": "day90_scheduling",
       "email_name": "Scheduling: In-Person Study Visit Day 90",
-      "subject": "\u3010Study-Reminder\u3011Your Day 90 Study Visit Has Been Scheduled",
+      "subject": "[Study-Reminder]Your Day 90 Study Visit Has Been Scheduled",
       "body": "Hi {{first_name}},\n\nThis is a confirmation that your study day 90 has been scheduled for {{day90_visit_date}} at {{day90_visit_time}}.\n\nPlease make sure to start your 3-day patternized diet on {{day90_patternized_diet_start_date}} and collect your stool sample from the morning of {{day90_stool_sample_window_start_date}} to the morning of {{day90_stool_sample_window_end_date}}.\n\nAfter the visit we will give you an additional 90-day supply of study food for you to consume for the second half of the study.\n\nThe in-person study visit will take approximately 4 hours and **you WILL BE dilated for eye exams**, so please plan proper transportation ahead of time.\n\nOur study team member will meet you in the lobby of the Tschannen Eye Institute and guide you through the entire study visit process.\n\nPlease do not hesitate to reach out should you have any questions or concerns. Thanks again for your time and willingness to participate in our study, and we hope you have a great rest of your week!\n\n{{email_signature}}"
     },
     {
       "template_id": "day90_rescheduling",
       "email_name": "Rescheduling: Study Day 90",
-      "subject": "\u3010Study-Reminder\u3011Rescheduling: Study Day 90",
+      "subject": "[Study-Reminder]Rescheduling: Study Day 90",
       "body": "Hi {{first_name}},\n\nYour study day 90 has been rescheduled from {{old_visit_date}} at {{old_visit_time}} to {{new_visit_date}} at {{new_visit_time}}.\n\nYour patternized diet will now start on {{new_patternized_diet_start_date}}, and you should collect your stool sample from the morning of {{new_stool_sample_window_start_date}} to the morning of {{new_stool_sample_window_end_date}}.\n\nAfter the visit we will give you an additional 90-day supply of study food for you to consume for the second half of the study.\n\nThe in-person study visit will take approximately 4 hours and **you WILL BE dilated for eye exams**, so please plan proper transportation ahead of time.\n\nOur study team member will meet you in the lobby of the Tschannen Eye Institute and guide you through the entire study visit process.\n\nPlease do not hesitate to reach out if you have any questions or concerns.\n\n{{email_signature}}"
     },
     {
       "template_id": "day90_patternized_diet",
-      "email_name": "REMINDER: Patternized Diet Starts Tomorrow \u2014 Day 90",
-      "subject": "\u3010Study-Reminder\u3011Patternized Diet Starts Tomorrow \u2014 Day 90",
+      "email_name": "REMINDER: Patternized Diet Starts Tomorrow - Day 90",
+      "subject": "[Study-Reminder]Patternized Diet Starts Tomorrow - Day 90",
       "body": "Hi {{first_name}},\n\nJust a quick reminder that your 3-day patternized diet starts tomorrow. Please record all the foods and beverages you consume tomorrow on the food record sheet, as this will be your guide for the next two days. You'll need to follow the same diet as closely as possible leading up to your stool collection on your study day.\n\nThe goal of this patternized diet is to stabilize your gut microbiome so that we can accurately evaluate how the study interventions affect the composition of your gut microbes and their impact on eye health.\n\nPlease remember that your stool collection window is from the morning of {{day90_stool_sample_window_start_date}} to the morning of {{day90_stool_sample_window_end_date}}, before your study visit on {{day90_visit_date}}.\n\nIf you have any questions or need any assistance, please don't hesitate to reach out. Thank you for your cooperation!\n\n{{email_signature}}"
     },
     {
       "template_id": "day90_visit_reminder",
       "email_name": "REMINDER: Day 90 Study Visit",
-      "subject": "\u3010Study-Reminder\u3011Your Day 90 Study Visit Is Tomorrow",
-      "body": "Hi {{first_name}},\n\nThis is a friendly reminder that your **day 90 study visit is tomorrow** at {{day90_visit_time}} and will take approximately 4 hours. After the visit we will give you an additional 90-day supply of study food for you to consume for the second half of the study.\n\nFor this day 90 visit, please remember to:\n- **Bring your stool sample.**\n- **Bring your 3-day patternized diet record and 3-day habitual diet record if you have completed one.**\n- **Arrive fasted** (your last bite of food should be before {{day90_last_bite_date}} at {{day90_last_bite_time}}).\n- **Stay hydrated** by drinking at least 20 oz of water the morning of your visit.\n\nYou will be provided with snacks after the blood draw, but you are also welcome to bring your own if you prefer.\n\nWe are located at the Tschannen Eye Institute, 4860 Y St #2400, Sacramento, CA 95817. If you are driving, there is a parking garage in front of the building\u2014please bring your parking ticket with you, and we will validate it. A member of our study team will meet you in the lobby when you arrive.\n\nPlease arrive on time so we can complete all study procedures smoothly. Thank you, and we look forward to seeing you tomorrow!\n\n{{email_signature}}"
+      "subject": "[Study-Reminder]Your Day 90 Study Visit Is Tomorrow",
+      "body": "Hi {{first_name}},\n\nThis is a friendly reminder that your **day 90 study visit is tomorrow** at {{day90_visit_time}} and will take approximately 4 hours. After the visit we will give you an additional 90-day supply of study food for you to consume for the second half of the study.\n\nFor this day 90 visit, please remember to:\n- **Bring your stool sample.**\n- **Bring your 3-day patternized diet record and 3-day habitual diet record if you have completed one.**\n- **Arrive fasted** (your last bite of food should be before {{day90_last_bite_date}} at {{day90_last_bite_time}}).\n- **Stay hydrated** by drinking at least 20 oz of water the morning of your visit.\n\nYou will be provided with snacks after the blood draw, but you are also welcome to bring your own if you prefer.\n\nWe are located at the Tschannen Eye Institute, 4860 Y St #2400, Sacramento, CA 95817. If you are driving, there is a parking garage in front of the building-please bring your parking ticket with you, and we will validate it. A member of our study team will meet you in the lobby when you arrive.\n\nPlease arrive on time so we can complete all study procedures smoothly. Thank you, and we look forward to seeing you tomorrow!\n\n{{email_signature}}"
     },
     {
       "template_id": "week18_habitual_diet",
-      "email_name": "REMINDER: Start Your 3-Day Habitual Diet \u2014 Week 18",
-      "subject": "\u3010Study-Reminder\u3011Start Your 3-Day Habitual Diet Record This Week",
+      "email_name": "REMINDER: Start Your 3-Day Habitual Diet - Week 18",
+      "subject": "[Study-Reminder]Start Your 3-Day Habitual Diet Record This Week",
       "body": "Hi {{first_name}},\n\nHope everything is going well!\n\nThis is a reminder that you will start recording your 3-day habitual diet this week (different from the patternized diet). The 3-day diet record should consist of two weekdays and one weekend. Please record everything you eat and drink, including all nibbles and snacks, no matter how small.\n\nHere are a few tips to help you:\n- **Maintain** your usual eating pattern during this time, and try not to change your diet because you are keeping a record.\n- **Record** everything you consume each day (24 hours), writing it down as soon as possible after eating or drinking.\n- **For meals eaten away** from home, do your best to estimate portion sizes, preparation methods, and ingredients. Indicate the name and type of the restaurant under \"Place\" in your record.\n- **Use the back of the page** if you need extra space, and feel free to fold up the daily record pages to take with you.\n\nIf you have any questions or need further clarification, please don't hesitate to reach out.\n\nThank you for your participation, and we look forward to receiving your completed records!\n\n{{email_signature}}"
     },
     {
       "template_id": "day180_scheduling",
       "email_name": "Scheduling: In-Person Study Visit Day 180",
-      "subject": "\u3010Study-Reminder\u3011Your Day 180 Study Visit Has Been Scheduled",
+      "subject": "[Study-Reminder]Your Day 180 Study Visit Has Been Scheduled",
       "body": "Hi {{first_name}},\n\nThis is a confirmation that your study day 180 has been scheduled for {{day180_visit_date}} at {{day180_visit_time}}.\n\n**For the 5 days leading up to the study visit, please make sure you are taking the assigned study food every day. If you are running low on food supplies, please let us know ASAP so we can ship some additional supplies over.**\n\nThe in-person study visit will take around 2 hours and **you WILL BE dilated for eye exams**, so please plan proper transportation ahead of time.\n\nOur study team member will meet you in the lobby of the Tschannen Eye Institute and guide you through the entire study visit process.\n\nPlease do not hesitate to reach out should you have any questions or concerns. Thanks again for your time and willingness to participate in our study, and we hope you have a great rest of your week!\n\n{{email_signature}}"
     },
     {
       "template_id": "day180_rescheduling",
       "email_name": "Rescheduling: Study Day 180",
-      "subject": "\u3010Study-Reminder\u3011Rescheduling: Study Day 180",
+      "subject": "[Study-Reminder]Rescheduling: Study Day 180",
       "body": "Hi {{first_name}},\n\nYour study day 180 has been rescheduled from {{old_visit_date}} at {{old_visit_time}} to {{new_visit_date}} at {{new_visit_time}}.\n\nFor the 5 days leading up to the study visit, please make sure you are taking the assigned study food every day. If you are running low on food supplies, please let us know ASAP so we can ship some additional supplies over.\n\nThe in-person study visit will take around 2 hours and **you WILL BE dilated for eye exams**, so please plan proper transportation ahead of time.\n\nOur study team member will meet you in the lobby of the Tschannen Eye Institute and guide you through the entire study visit process.\n\nPlease do not hesitate to reach out if you have any questions or concerns.\n\n{{email_signature}}"
     },
     {
       "template_id": "day180_visit_reminder",
       "email_name": "REMINDER: Day 180 Study Visit",
-      "subject": "\u3010Study-Reminder\u3011Your Day 180 Study Visit Is Tomorrow",
+      "subject": "[Study-Reminder]Your Day 180 Study Visit Is Tomorrow",
       "body": "Hi {{first_name}},\n\nThis is a friendly reminder that your study day 180 visit is **tomorrow** at {{day180_visit_time}} and will take around 2 hours and your eyes WILL BE dilated. Please remember to **bring your 3-day habitual diet record(s) with you when you come for your last visit**.\n\nWe are located at the Tschannen Eye Institute, 4860 Y St #2400, Sacramento, CA 95817. If you are driving in, we have a parking garage available in the front of the building. Please take your parking ticket with you when you enter the building. We will validate the parking ticket for you. A member of our study team will meet you in the lobby when you arrive.\n\nPlease arrive on time to allow adequate time to complete all of the study day-related tasks. Thank you and see you **tomorrow**!\n\n{{email_signature}}"
     }
   ],

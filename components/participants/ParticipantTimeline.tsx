@@ -87,7 +87,7 @@ export default function ParticipantTimeline({
                         <span className={isOldSchedule ? 'text-gray-400' : ''}>
                           {job.email_name}
                           {isOldSchedule && (
-                            <span className="ml-1 text-xs text-orange-500 font-medium">(旧排期)</span>
+                            <span className="ml-1 text-xs text-orange-500 font-medium">(old schedule)</span>
                           )}
                         </span>
                         {isOldSchedule && job.status === 'sent' ? (
