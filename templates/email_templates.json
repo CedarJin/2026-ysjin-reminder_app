@@ -10,7 +10,7 @@
       "template_id": "day0_rescheduling",
       "email_name": "Rescheduling: Study Day 0",
       "subject": "[Study-Reminder]Rescheduling: Study Day 0",
-      "body": "Hi {{first_name}},\n\nYour study day 0 has been rescheduled from {{old_visit_date}} at {{old_visit_time}} to {{new_visit_date}} at {{new_visit_time}}.\n\nYour patternized diet will now start on {{new_patternized_diet_start_date}}, and you should collect your stool sample from the morning of {{new_stool_sample_window_start_date}} to the morning of {{new_stool_sample_window_end_date}}.\n\nThe in-person study visit will take around 4 hours and **you WILL BE dilated for eye exams**, so please plan proper transportation ahead of time.\n\nOur study team member will meet you in the lobby of the Tschannen Eye Institute and guide you through the entire study visit process.\n\nPlease do not hesitate to reach out if you have any questions or concerns.\n\n{{email_signature}}"
+      "body": "Hi {{first_name}},\n\nYour study day 0 has been rescheduled from {{old_visit_date}} at {{old_visit_time}} to {{new_visit_date}} at {{new_visit_time}}. Your patternized diet will now start on {{new_patternized_diet_start_date}}, and you should collect your stool sample from the morning of {{new_stool_sample_window_start_date}} to the morning of {{new_stool_sample_window_end_date}}.\n\nPlease do not hesitate to reach out if you have any questions or concerns.\n\n{{email_signature}}"
     },
     {
       "template_id": "day0_patternized_diet",
@@ -40,7 +40,7 @@
       "template_id": "day90_rescheduling",
       "email_name": "Rescheduling: Study Day 90",
       "subject": "[Study-Reminder]Rescheduling: Study Day 90",
-      "body": "Hi {{first_name}},\n\nYour study day 90 has been rescheduled from {{old_visit_date}} at {{old_visit_time}} to {{new_visit_date}} at {{new_visit_time}}.\n\nYour patternized diet will now start on {{new_patternized_diet_start_date}}, and you should collect your stool sample from the morning of {{new_stool_sample_window_start_date}} to the morning of {{new_stool_sample_window_end_date}}.\n\nAfter the visit we will give you an additional 90-day supply of study food for you to consume for the second half of the study.\n\nThe in-person study visit will take approximately 4 hours and **you WILL BE dilated for eye exams**, so please plan proper transportation ahead of time.\n\nOur study team member will meet you in the lobby of the Tschannen Eye Institute and guide you through the entire study visit process.\n\nPlease do not hesitate to reach out if you have any questions or concerns.\n\n{{email_signature}}"
+      "body": "Hi {{first_name}},\n\nYour study day 90 has been rescheduled from {{old_visit_date}} at {{old_visit_time}} to {{new_visit_date}} at {{new_visit_time}}. Your patternized diet will now start on {{new_patternized_diet_start_date}}, and you should collect your stool sample from the morning of {{new_stool_sample_window_start_date}} to the morning of {{new_stool_sample_window_end_date}}.\n\nPlease do not hesitate to reach out if you have any questions or concerns.\n\n{{email_signature}}"
     },
     {
       "template_id": "day90_patternized_diet",
@@ -70,7 +70,7 @@
       "template_id": "day180_rescheduling",
       "email_name": "Rescheduling: Study Day 180",
       "subject": "[Study-Reminder]Rescheduling: Study Day 180",
-      "body": "Hi {{first_name}},\n\nYour study day 180 has been rescheduled from {{old_visit_date}} at {{old_visit_time}} to {{new_visit_date}} at {{new_visit_time}}.\n\nFor the 5 days leading up to the study visit, please make sure you are taking the assigned study food every day. If you are running low on food supplies, please let us know ASAP so we can ship some additional supplies over.\n\nThe in-person study visit will take around 2 hours and **you WILL BE dilated for eye exams**, so please plan proper transportation ahead of time.\n\nOur study team member will meet you in the lobby of the Tschannen Eye Institute and guide you through the entire study visit process.\n\nPlease do not hesitate to reach out if you have any questions or concerns.\n\n{{email_signature}}"
+      "body": "Hi {{first_name}},\n\nYour study day 180 has been rescheduled from {{old_visit_date}} at {{old_visit_time}} to {{new_visit_date}} at {{new_visit_time}}.\n\nPlease do not hesitate to reach out if you have any questions or concerns.\n\n{{email_signature}}"
     },
     {
       "template_id": "day180_visit_reminder",
