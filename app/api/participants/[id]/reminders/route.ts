@@ -93,16 +93,13 @@ export async function POST(
       duplicates_skipped: totalDuplicates,
     });
   } catch (error) {
-    let message: string;
-    if (error instanceof Error) {
-      message = error.message;
-    } else if (typeof error === 'string') {
-      message = error;
-    } else {
-      message = 'Unknown error: ' + JSON.stringify(error);
-    }
-    console.error('/api/participants/[id]/reminders error:', message, error);
-    return NextResponse.json({ error: message }, { status: 500 });
+    const message =
+      error instanceof Error
+        ? error.message
+        : error instanceof Object
+        ? JSON.stringify(error)
+        : String(error) || 'Unknown error';
+    return NextResponse.json({ error: message, type: typeof error }, { status: 500 });
   }
 }
 
