@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  const publicPaths = ['/login', '/auth/callback'];
+  const publicPaths = ['/login', '/auth/callback', '/api/reminders/process-due'];
   if (!session && !publicPaths.includes(request.nextUrl.pathname)) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
