@@ -18,7 +18,7 @@ triggerClient.defineJob({
     // Only auto-send jobs due within the last minute; older ones need manual review
     const recentJobs = dueJobs.filter((job) => {
       const sendTime = new Date(job.scheduled_send_datetime).getTime();
-      return now.getTime() - sendTime < 60000;
+      return now.getTime() - sendTime < 12 * 60 * 60 * 1000;
     });
 
     io.logger.info(`Found ${dueJobs.length} due, ${recentJobs.length} auto-sent, ${dueJobs.length - recentJobs.length} overdue (manual)`);

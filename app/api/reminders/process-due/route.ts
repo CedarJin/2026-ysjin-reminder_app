@@ -16,7 +16,7 @@ export async function GET() {
     // Older overdue jobs stay as 'scheduled' for manual review (Send Now).
     const recentJobs = dueJobs.filter((job) => {
       const sendTime = new Date(job.scheduled_send_datetime).getTime();
-      return now.getTime() - sendTime < 60000;
+      return now.getTime() - sendTime < 12 * 60 * 60 * 1000;
     });
 
     const results: Array<{ id: string; status: string }> = [];
