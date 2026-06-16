@@ -15,7 +15,6 @@ interface ReminderJob {
 
 const STATUS_COLORS: Record<string, string> = {
   scheduled: 'bg-blue-100 text-blue-800',
-  pending_review: 'bg-yellow-100 text-yellow-800',
   sent: 'bg-green-100 text-green-800',
   failed: 'bg-red-100 text-red-800',
   canceled: 'bg-gray-200 text-gray-600',
@@ -65,7 +64,7 @@ export default function RemindersPage() {
     loadJobs();
   };
 
-  const canSend = (s: string) => ['scheduled', 'pending_review', 'failed'].includes(s);
+  const canSend = (s: string) => ['scheduled', 'failed'].includes(s);
 
   const sorted = [...jobs].sort(
     (a, b) => new Date(b.scheduled_send_datetime).getTime() - new Date(a.scheduled_send_datetime).getTime()
@@ -86,7 +85,7 @@ export default function RemindersPage() {
       </div>
 
       <div className="mb-4 flex gap-2 flex-wrap">
-        {['', 'scheduled', 'pending_review', 'sent', 'failed'].map((s) => (
+        {['', 'scheduled', 'sent', 'failed'].map((s) => (
           <button
             key={s}
             onClick={() => setStatusFilter(s)}

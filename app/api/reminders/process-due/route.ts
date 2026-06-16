@@ -6,20 +6,15 @@ export async function GET() {
   try {
     const now = new Date();
 
-    // Fetch all jobs that are due (scheduled or pending_review)
+    // Fetch all due scheduled jobs
     const dueJobs = await supabaseRepositories.listReminderJobs({
-      status: 'pending_review',
-      dueBefore: now,
-    });
-    const scheduledJobs = await supabaseRepositories.listReminderJobs({
       status: 'scheduled',
       dueBefore: now,
     });
 
-    const allJobs = [...dueJobs, ...scheduledJobs];
     const results: Array<{ id: string; status: string }> = [];
 
-    for (const job of allJobs) {
+    for (const job of dueJobs) {
       try {
         const result = await sendReminderJob(supabaseRepositories, job.id);
         results.push({ id: job.id, status: result.status });
@@ -29,7 +24,7 @@ export async function GET() {
     }
 
     return NextResponse.json({
-      processed: allJobs.length,
+      processed: dueJobs.length,
       results,
     });
   } catch (error) {

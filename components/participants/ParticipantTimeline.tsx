@@ -32,9 +32,9 @@ export default function ParticipantTimeline({
         const phaseJobs = jobs
           .filter((j) => j.phase === phase.phaseKey)
           .sort((a, b) => {
-            // Unsent (scheduled/pending_review) first, then by send time ascending
-            const aPending = a.status === 'scheduled' || a.status === 'pending_review' ? 0 : 1;
-            const bPending = b.status === 'scheduled' || b.status === 'pending_review' ? 0 : 1;
+            // Unsent (scheduled) first, then by send time ascending
+            const aPending = a.status === 'scheduled'  ? 0 : 1;
+            const bPending = b.status === 'scheduled'  ? 0 : 1;
             if (aPending !== bPending) return aPending - bPending;
             return new Date(a.scheduled_send_datetime).getTime() - new Date(b.scheduled_send_datetime).getTime();
           });

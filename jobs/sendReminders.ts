@@ -11,21 +11,13 @@ triggerClient.defineJob({
   run: async (_payload, io, _ctx) => {
     const now = new Date();
     const dueJobs = await supabaseRepositories.listReminderJobs({
-      status: 'pending_review',
-      dueBefore: now,
-    });
-
-    // Also pick up scheduled jobs that are due
-    const scheduledJobs = await supabaseRepositories.listReminderJobs({
       status: 'scheduled',
       dueBefore: now,
     });
 
-    const allDueJobs = [...dueJobs, ...scheduledJobs];
+    io.logger.info(`Found ${dueJobs.length} due reminder jobs`);
 
-    io.logger.info(`Found ${allDueJobs.length} due reminder jobs (${dueJobs.length} pending_review, ${scheduledJobs.length} scheduled)`);
-
-    for (const job of allDueJobs) {
+    for (const job of dueJobs) {
       try {
         const result = await sendReminderJob(supabaseRepositories, job.id);
         if (result.success) {
@@ -39,6 +31,6 @@ triggerClient.defineJob({
       }
     }
 
-    return { processed: allDueJobs.length };
+    return { processed: dueJobs.length };
   },
 });
