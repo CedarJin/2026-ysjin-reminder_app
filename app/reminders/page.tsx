@@ -47,6 +47,8 @@ export default function RemindersPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
+  const [sortKey, setSortKey] = useState<string>('scheduled_send_datetime');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
   const loadJobs = () => {
     setLoading(true);
@@ -64,6 +66,16 @@ export default function RemindersPage() {
     loadJobs();
   }, [statusFilter]);
 
+  const handleSort = (key: string) => {
+    if (sortKey === key) setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  };
+
+  const SortIcon = ({ k }: { k: string }) => {
+    if (sortKey !== k) return <span className="ml-1 text-gray-300">↕</span>;
+    return <span className="ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>;
+  };
+
   const handleFilter = (key: string) => {
     setShowOverdueOnly(false);
     setStatusFilter(key === 'all' ? '' : key);
@@ -80,9 +92,19 @@ export default function RemindersPage() {
 
   const filtered = showOverdueOnly ? jobs.filter(isOverdue) : jobs;
 
-  const sorted = [...filtered].sort(
-    (a, b) => new Date(b.scheduled_send_datetime).getTime() - new Date(a.scheduled_send_datetime).getTime()
-  );
+  const sorted = [...filtered].sort((a, b) => {
+    let cmp = 0;
+    switch (sortKey) {
+      case 'email_name': cmp = a.email_name.localeCompare(b.email_name); break;
+      case 'study_id': cmp = (a.study_id || '').localeCompare(b.study_id || ''); break;
+      case 'phase': cmp = (a.phase || '').localeCompare(b.phase || ''); break;
+      case 'status': cmp = a.status.localeCompare(b.status); break;
+      case 'overdue': cmp = (isOverdue(a) ? 1 : 0) - (isOverdue(b) ? 1 : 0); break;
+      case 'scheduled_send_datetime': cmp = new Date(a.scheduled_send_datetime).getTime() - new Date(b.scheduled_send_datetime).getTime(); break;
+      case 'sent_at': cmp = (a.sent_at || '').localeCompare(b.sent_at || ''); break;
+    }
+    return sortDir === 'asc' ? cmp : -cmp;
+  });
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-8">
@@ -121,13 +143,13 @@ export default function RemindersPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b text-left text-xs text-gray-500 uppercase bg-gray-50">
-                <th className="px-4 py-3">Email</th>
-                <th className="px-4 py-3">Participant</th>
-                <th className="px-4 py-3">Phase</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Overdue</th>
-                <th className="px-4 py-3">Scheduled</th>
-                <th className="px-4 py-3">Sent</th>
+                <th className="px-4 py-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('email_name')}>Email <SortIcon k="email_name" /></th>
+                <th className="px-4 py-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('study_id')}>Participant <SortIcon k="study_id" /></th>
+                <th className="px-4 py-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('phase')}>Phase <SortIcon k="phase" /></th>
+                <th className="px-4 py-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('status')}>Status <SortIcon k="status" /></th>
+                <th className="px-4 py-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('overdue')}>Overdue <SortIcon k="overdue" /></th>
+                <th className="px-4 py-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('scheduled_send_datetime')}>Scheduled <SortIcon k="scheduled_send_datetime" /></th>
+                <th className="px-4 py-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('sent_at')}>Sent <SortIcon k="sent_at" /></th>
                 <th className="px-4 py-3">Action</th>
               </tr>
             </thead>
