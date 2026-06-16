@@ -33,11 +33,30 @@ export async function POST(
       }
     }
 
+    // For each (rule_id, visit), check if a sent job already exists
+    // with the SAME visit_datetime_snapshot (meaning it was sent for the current schedule, not a previous one)
+    const currentSnapshots = new Map<string, string>();
+    for (const visit of visits) {
+      currentSnapshots.set(visit.id, visit.scheduled_datetime);
+    }
+
+    const alreadySentKeys = new Set<string>();
+    for (const job of existingJobs) {
+      if (job.status === 'sent' && job.rule_id && job.visit_id) {
+        const currentSnapshot = currentSnapshots.get(job.visit_id);
+        // Only consider it a duplicate if the snapshot matches the current visit datetime
+        if (currentSnapshot && job.visit_datetime_snapshot === currentSnapshot) {
+          alreadySentKeys.add(`${job.rule_id}:${job.visit_id}`);
+        }
+      }
+    }
+
     const allRules = await supabaseRepositories.listActiveReminderRules();
     const studyRules = getActiveRulesForStudy(allRules, participant.study_id);
 
     let totalCreated = 0;
     let totalSkipped = 0;
+    let totalDuplicates = 0;
 
     for (const visit of visits) {
       const relevantRules = studyRules.filter((r) => {
@@ -45,11 +64,22 @@ export async function POST(
         return phases.includes(r.phase);
       });
 
+      // Skip rules that already have a sent job matching current schedule
+      const newRules = relevantRules.filter((r) => {
+        if (alreadySentKeys.has(`${r.rule_id}:${visit.id}`)) {
+          totalDuplicates++;
+          return false;
+        }
+        return true;
+      });
+
+      if (newRules.length === 0) continue;
+
       const result = await generateReminderJobs(
         supabaseRepositories,
         participant,
         visits,
-        relevantRules
+        newRules
       );
 
       totalCreated += result.created.length;
@@ -60,6 +90,7 @@ export async function POST(
       canceled: canceledCount,
       created: totalCreated,
       skipped: totalSkipped,
+      duplicates_skipped: totalDuplicates,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';

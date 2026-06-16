@@ -67,7 +67,8 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
       if (!res.ok) {
         alert(`Failed: ${result.error || 'Unknown error'}`);
       } else {
-        alert(`Canceled ${result.canceled} old, created ${result.created} new (${result.skipped} skipped)`);
+        const dupMsg = result.duplicates_skipped ? `, ${result.duplicates_skipped} already sent (not regenerated)` : '';
+        alert(`Canceled ${result.canceled} pending, created ${result.created} new${dupMsg}`);
       }
       onRefresh?.();
     } catch (err) {
