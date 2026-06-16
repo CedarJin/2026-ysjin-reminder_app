@@ -22,6 +22,9 @@ export default function ParticipantDetailPage() {
   const [data, setData] = useState<ParticipantDetailData | null>(null);
   const [loading, setLoading] = useState(true);
   const [savingStatus, setSavingStatus] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [editForm, setEditForm] = useState({ first_name: '', last_name: '', email: '', timezone: '' });
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const refreshData = () => {
     if (!participantId) return;
@@ -148,8 +151,80 @@ export default function ParticipantDetailPage() {
             <option value="completed">Completed</option>
           </select>
           {savingStatus && <span className="text-xs text-gray-400">saving...</span>}
+          <button onClick={() => { setShowEdit(!showEdit); if (!showEdit) setEditForm({ first_name: participant.first_name, last_name: participant.last_name, email: participant.email, timezone: participant.timezone }); }}
+            className="ml-4 px-3 py-1.5 text-sm bg-gray-500 text-white rounded-md hover:bg-gray-600">
+            {showEdit ? 'Cancel' : 'Edit Info'}
+          </button>
         </div>
       </div>
+
+      {showEdit && (
+        <div className="bg-white p-4 rounded-lg shadow mb-6">
+          <h2 className="text-lg font-semibold mb-3">Edit Participant Info</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">First Name</label>
+              <input type="text" value={editForm.first_name}
+                onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })}
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Last Name</label>
+              <input type="text" value={editForm.last_name}
+                onChange={(e) => setEditForm({ ...editForm, last_name: e.target.value })}
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Email</label>
+              <input type="email" value={editForm.email}
+                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Timezone</label>
+              <input type="text" value={editForm.timezone}
+                onChange={(e) => setEditForm({ ...editForm, timezone: e.target.value })}
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+            </div>
+          </div>
+          <div className="mt-4 flex gap-2">
+            <button onClick={async () => {
+                setSavingEdit(true);
+                try {
+                  const res = await fetch(`/api/participants/${participantId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      firstName: editForm.first_name,
+                      lastName: editForm.last_name,
+                      email: editForm.email,
+                      timezone: editForm.timezone,
+                    }),
+                  });
+                  if (!res.ok) {
+                    const err = await res.json();
+                    alert(`Save failed: ${err.error || 'Unknown error'}`);
+                  } else {
+                    setShowEdit(false);
+                    refreshData();
+                  }
+                } catch (err) {
+                  alert(`Network error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+                } finally {
+                  setSavingEdit(false);
+                }
+              }}
+              disabled={savingEdit}
+              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
+              {savingEdit ? 'Saving...' : 'Save'}
+            </button>
+            <button onClick={() => setShowEdit(false)}
+              className="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-4">
