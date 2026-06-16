@@ -319,6 +319,15 @@ export const supabaseRepositories: Repositories = {
     return data as EmailTemplate;
   },
 
+  async listEmailTemplates() {
+    const { data, error } = await supabase
+      .from('email_templates')
+      .select('*')
+      .order('email_name', { ascending: true });
+    if (error) throw error;
+    return (data as EmailTemplate[]) || [];
+  },
+
   // Audit logs
   async createAuditLog(data) {
     const { data: result, error } = await supabase

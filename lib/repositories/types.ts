@@ -67,6 +67,7 @@ export interface Repositories {
 
   // Email templates
   getEmailTemplateByTemplateId(templateId: string): Promise<EmailTemplate | null>;
+  listEmailTemplates(): Promise<EmailTemplate[]>;
 
   // Audit logs
   createAuditLog(data: Omit<AuditLog, 'id' | 'created_at'>): Promise<AuditLog>;

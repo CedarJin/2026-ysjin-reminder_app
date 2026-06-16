@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ReminderJob } from '@/lib/db/schema';
 
 interface ReminderJobsPanelProps {
@@ -25,7 +25,7 @@ const PHASE_LABELS: Record<string, string> = {
   week18: 'Week 18',
 };
 
-type SortKey = 'email_name' | 'phase' | 'status' | 'scheduled_send_datetime' | 'sent_at';
+type SortKey = 'email_name' | 'phase' | 'status' | 'scheduled_send_datetime' | 'sent_at' | 'overdue';
 type SortDir = 'asc' | 'desc';
 
 function formatDateTime(iso: string | null | undefined): string {
@@ -35,10 +35,22 @@ function formatDateTime(iso: string | null | undefined): string {
   });
 }
 
+function formatDateInput(d: string): string {
+  return d ? d.slice(0, 10) : '';
+}
+
+function isOverdue(job: ReminderJob): boolean {
+  return job.status === 'scheduled' && new Date(job.scheduled_send_datetime) < new Date();
+}
+
 function getStatusRank(status: string): number {
-  // Unsent first
-  if (status === 'scheduled' ) return 0;
+  if (status === 'scheduled') return 0;
   return 1;
+}
+
+interface Template {
+  template_id: string;
+  email_name: string;
 }
 
 export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: ReminderJobsPanelProps) {
@@ -46,6 +58,19 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
   const [regenerating, setRegenerating] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>('scheduled_send_datetime');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDate, setEditDate] = useState('');
+  const [editTime, setEditTime] = useState('');
+  const [editTemplate, setEditTemplate] = useState('');
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/templates')
+      .then((r) => r.json())
+      .then((data) => setTemplates(data))
+      .catch(() => {});
+  }, []);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -61,9 +86,7 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
     try {
       const res = await fetch(`/api/reminders/${jobId}/send`, { method: 'POST' });
       const result = await res.json();
-      if (!result.success) {
-        alert(`Send failed: ${result.error || 'Unknown error'}`);
-      }
+      if (!result.success) alert(`Send failed: ${result.error || 'Unknown error'}`);
       onRefresh?.();
     } catch (err) {
       alert(`Network error: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -78,11 +101,8 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
     try {
       const res = await fetch(`/api/participants/${participantId}/reminders`, { method: 'POST' });
       const result = await res.json();
-      if (!res.ok) {
-        alert(`Failed: ${result.error || 'Unknown error'}`);
-      } else {
-        alert(`Created ${result.created} new, ${result.already_exist} already exist (skipped)`);
-      }
+      if (!res.ok) alert(`Failed: ${result.error || 'Unknown error'}`);
+      else alert(`Created ${result.created} new, ${result.already_exist} already exist (skipped)`);
       onRefresh?.();
     } catch (err) {
       alert(`Network error: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -91,11 +111,47 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
     }
   };
 
-  const canSend = (status: string) =>
-    status === 'scheduled'  || status === 'failed';
+  const startEdit = (job: ReminderJob) => {
+    setEditingId(job.id);
+    setEditDate(formatDateInput(job.scheduled_send_datetime));
+    setEditTime(job.scheduled_send_time?.slice(0, 5) || '09:00');
+    setEditTemplate(job.template_id);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+  };
+
+  const saveEdit = async (jobId: string) => {
+    setSavingEdit(true);
+    try {
+      const newDatetime = `${editDate}T${editTime}:00`;
+      const res = await fetch(`/api/reminders/${jobId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scheduled_send_date: editDate,
+          scheduled_send_time: editTime,
+          scheduled_send_datetime: newDatetime,
+          template_id: editTemplate,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        alert(`Save failed: ${err.error || 'Unknown error'}`);
+      }
+      onRefresh?.();
+      setEditingId(null);
+    } catch (err) {
+      alert(`Network error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const canSend = (status: string) => status === 'scheduled' || status === 'failed';
 
   const sorted = [...jobs].sort((a, b) => {
-    // Default: unsent first, then by send time ascending
     const rankA = getStatusRank(a.status);
     const rankB = getStatusRank(b.status);
     if (rankA !== rankB) return rankA - rankB;
@@ -110,6 +166,9 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
         break;
       case 'status':
         cmp = a.status.localeCompare(b.status);
+        break;
+      case 'overdue':
+        cmp = (isOverdue(a) ? 0 : 1) - (isOverdue(b) ? 0 : 1);
         break;
       case 'scheduled_send_datetime':
         cmp = new Date(a.scheduled_send_datetime).getTime() - new Date(b.scheduled_send_datetime).getTime();
@@ -131,15 +190,12 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
       <div className="bg-white p-4 rounded-lg shadow">
         <div className="flex justify-between items-center mb-2">
           <h2 className="text-lg font-semibold">Reminder Emails</h2>
-          <button
-            onClick={handleRegenerate}
-            disabled={regenerating}
-            className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-          >
+          <button onClick={handleRegenerate} disabled={regenerating}
+            className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
             {regenerating ? 'Generating...' : 'Regenerate'}
           </button>
         </div>
-        <p className="text-sm text-gray-500">No reminder jobs yet. Schedule a visit to generate reminders.</p>
+        <p className="text-sm text-gray-500">No reminder jobs yet.</p>
       </div>
     );
   }
@@ -148,11 +204,8 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
     <div className="bg-white p-4 rounded-lg shadow">
       <div className="flex justify-between items-center mb-3">
         <h2 className="text-lg font-semibold">Reminder Emails</h2>
-        <button
-          onClick={handleRegenerate}
-          disabled={regenerating}
-          className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-        >
+        <button onClick={handleRegenerate} disabled={regenerating}
+          className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
           {regenerating ? 'Generating...' : 'Regenerate'}
         </button>
       </div>
@@ -169,6 +222,9 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
               <th className="pb-2 pr-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('status')}>
                 Status <SortIcon column="status" />
               </th>
+              <th className="pb-2 pr-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('overdue')}>
+                Overdue <SortIcon column="overdue" />
+              </th>
               <th className="pb-2 pr-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('scheduled_send_datetime')}>
                 Scheduled Send <SortIcon column="scheduled_send_datetime" />
               </th>
@@ -180,47 +236,98 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
             </tr>
           </thead>
           <tbody>
-            {sorted.map((job) => (
-              <tr key={job.id} className="border-b last:border-0 hover:bg-gray-50">
-                <td className="py-2 pr-3 max-w-[200px] truncate" title={job.email_name}>
-                  {job.email_name}
-                </td>
-                <td className="py-2 pr-3">
-                  <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-700">
-                    {PHASE_LABELS[job.phase] || job.phase}
-                  </span>
-                </td>
-                <td className="py-2 pr-3">
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded font-medium ${
-                      STATUS_COLORS[job.status] || 'bg-gray-100 text-gray-800'
-                    }`}
-                  >
-                    {job.status.replace('_', ' ')}
-                  </span>
-                </td>
-                <td className="py-2 pr-3 whitespace-nowrap">
-                  {formatDateTime(job.scheduled_send_datetime)}
-                </td>
-                <td className="py-2 pr-3 whitespace-nowrap">
-                  {formatDateTime(job.sent_at)}
-                </td>
-                <td className="py-2 pr-3 text-xs text-gray-500 max-w-[100px] truncate" title={job.template_id}>
-                  {job.template_id}
-                </td>
-                <td className="py-2 pr-3 whitespace-nowrap">
-                  {canSend(job.status) && (
-                    <button
-                      onClick={() => handleSendNow(job.id)}
-                      disabled={sending === job.id}
-                      className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
-                    >
-                      {sending === job.id ? 'Sending...' : 'Send Now'}
+            {sorted.map((job) => {
+              const overdue = isOverdue(job);
+              const isEditing = editingId === job.id;
+
+              if (isEditing) {
+                return (
+                  <tr key={job.id} className="border-b last:border-0 bg-yellow-50">
+                    <td className="py-2 pr-3 max-w-[200px] truncate">{job.email_name}</td>
+                    <td className="py-2 pr-3">
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100">
+                        {PHASE_LABELS[job.phase] || job.phase}
+                      </span>
+                    </td>
+                    <td className="py-2 pr-3">{job.status}</td>
+                    <td className="py-2 pr-3">—</td>
+                    <td className="py-2 pr-3">
+                      <input type="date" value={editDate}
+                        onChange={(e) => setEditDate(e.target.value)}
+                        className="text-xs border rounded px-1 py-0.5 w-28" />
+                      <input type="time" value={editTime}
+                        onChange={(e) => setEditTime(e.target.value)}
+                        className="text-xs border rounded px-1 py-0.5 w-20 ml-1" />
+                    </td>
+                    <td className="py-2 pr-3">—</td>
+                    <td className="py-2 pr-3">
+                      <select value={editTemplate} onChange={(e) => setEditTemplate(e.target.value)}
+                        className="text-xs border rounded px-1 py-0.5 max-w-[120px]">
+                        {templates.map((t) => (
+                          <option key={t.template_id} value={t.template_id}>{t.template_id}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="py-2 pr-3 whitespace-nowrap">
+                      <button onClick={() => saveEdit(job.id)} disabled={savingEdit}
+                        className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 mr-1">
+                        {savingEdit ? 'Saving...' : 'Save'}
+                      </button>
+                      <button onClick={cancelEdit}
+                        className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+                        Cancel
+                      </button>
+                    </td>
+                  </tr>
+                );
+              }
+
+              return (
+                <tr key={job.id} className={`border-b last:border-0 hover:bg-gray-50 ${overdue ? 'bg-red-50' : ''}`}>
+                  <td className="py-2 pr-3 max-w-[200px] truncate" title={job.email_name}>
+                    {job.email_name}
+                  </td>
+                  <td className="py-2 pr-3">
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-700">
+                      {PHASE_LABELS[job.phase] || job.phase}
+                    </span>
+                  </td>
+                  <td className="py-2 pr-3">
+                    <span className={`text-xs px-2 py-0.5 rounded font-medium ${STATUS_COLORS[job.status] || 'bg-gray-100 text-gray-800'}`}>
+                      {job.status.replace('_', ' ')}
+                    </span>
+                  </td>
+                  <td className="py-2 pr-3">
+                    {overdue ? (
+                      <span className="text-xs px-2 py-0.5 rounded font-medium bg-red-200 text-red-800">overdue</span>
+                    ) : (
+                      <span className="text-xs text-gray-300">—</span>
+                    )}
+                  </td>
+                  <td className="py-2 pr-3 whitespace-nowrap">
+                    {formatDateTime(job.scheduled_send_datetime)}
+                  </td>
+                  <td className="py-2 pr-3 whitespace-nowrap">
+                    {formatDateTime(job.sent_at)}
+                  </td>
+                  <td className="py-2 pr-3 text-xs text-gray-500 max-w-[100px] truncate" title={job.template_id}>
+                    {job.template_id}
+                  </td>
+                  <td className="py-2 pr-3 whitespace-nowrap">
+                    {canSend(job.status) && (
+                      <button onClick={() => handleSendNow(job.id)} disabled={sending === job.id}
+                        className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 mr-1">
+                        {sending === job.id ? '...' : 'Send Now'}
+                      </button>
+                    )}
+                    <button onClick={() => startEdit(job)}
+                      className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600">
+                      Edit
                     </button>
-                  )}
-                </td>
-              </tr>
-            ))}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

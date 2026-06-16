@@ -295,6 +295,10 @@ export function createMemoryRepositories(seedRules: ReminderRule[] = []): Reposi
       );
     },
 
+    async listEmailTemplates() {
+      return [...emailTemplates];
+    },
+
     // Audit logs
     async createAuditLog(data) {
       const log: AuditLog = {
