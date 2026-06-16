@@ -26,8 +26,8 @@
     },
     {
       "template_id": "week6_habitual_diet",
-      "email_name": "REMINDER: Start Your 3-Day Habitual Diet - Week 6",
-      "subject": "[Study-Reminder]Start Your 3-Day Habitual Diet Record This Week",
+      "email_name": "REMINDER: Start Your 1st 3-Day Habitual Diet Record",
+      "subject": "[Study-Reminder]Start Your 1st 3-Day Habitual Diet Record This Week",
       "body": "Hi {{first_name}},\n\nHope everything is going well!\n\nThis is a reminder that you will start recording your 3-day habitual diet this week (different from the patternized diet). The 3-day diet record should consist of two weekdays and one weekend. Please record everything you eat and drink, including all nibbles and snacks, no matter how small.\n\nHere are a few tips to help you:\n- **Maintain** your usual eating pattern during this time, and try not to change your diet because you are keeping a record.\n- **Record** everything you consume each day (24 hours), writing it down as soon as possible after eating or drinking.\n- **For meals eaten away** from home, do your best to estimate portion sizes, preparation methods, and ingredients. Indicate the name and type of the restaurant under \"Place\" in your record.\n- **Use the back of the page** if you need extra space, and feel free to fold up the daily record pages to take with you.\n\nIf you have any questions or need further clarification, please don't hesitate to reach out.\n\nThank you for your participation, and we look forward to receiving your completed records!\n\n{{email_signature}}"
     },
     {
@@ -56,8 +56,8 @@
     },
     {
       "template_id": "week18_habitual_diet",
-      "email_name": "REMINDER: Start Your 3-Day Habitual Diet - Week 18",
-      "subject": "[Study-Reminder]Start Your 3-Day Habitual Diet Record This Week",
+      "email_name": "REMINDER: Start Your 2nd 3-Day Habitual Diet Record",
+      "subject": "[Study-Reminder]Start Your 2nd 3-Day Habitual Diet Record This Week",
       "body": "Hi {{first_name}},\n\nHope everything is going well!\n\nThis is a reminder that you will start recording your 3-day habitual diet this week (different from the patternized diet). The 3-day diet record should consist of two weekdays and one weekend. Please record everything you eat and drink, including all nibbles and snacks, no matter how small.\n\nHere are a few tips to help you:\n- **Maintain** your usual eating pattern during this time, and try not to change your diet because you are keeping a record.\n- **Record** everything you consume each day (24 hours), writing it down as soon as possible after eating or drinking.\n- **For meals eaten away** from home, do your best to estimate portion sizes, preparation methods, and ingredients. Indicate the name and type of the restaurant under \"Place\" in your record.\n- **Use the back of the page** if you need extra space, and feel free to fold up the daily record pages to take with you.\n\nIf you have any questions or need further clarification, please don't hesitate to reach out.\n\nThank you for your participation, and we look forward to receiving your completed records!\n\n{{email_signature}}"
     },
     {
