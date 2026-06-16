@@ -40,7 +40,9 @@ function formatDateInput(d: string): string {
 }
 
 function isOverdue(job: ReminderJob): boolean {
-  return job.status === 'scheduled' && new Date(job.scheduled_send_datetime) < new Date();
+  if (job.status !== 'scheduled') return false;
+  const diff = Date.now() - new Date(job.scheduled_send_datetime).getTime();
+  return diff > 12 * 60 * 60 * 1000; // overdue by more than 12 hours
 }
 
 function getStatusRank(status: string): number {
