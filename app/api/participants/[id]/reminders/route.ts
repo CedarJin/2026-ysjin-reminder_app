@@ -17,6 +17,22 @@ export async function POST(
       return NextResponse.json({ error: 'No visits scheduled yet' }, { status: 400 });
     }
 
+    // Cancel existing pending/scheduled jobs for this participant
+    const existingJobs = await supabaseRepositories.listReminderJobs({
+      participantId: params.id,
+    });
+    let canceledCount = 0;
+    for (const job of existingJobs) {
+      if (job.status === 'scheduled' || job.status === 'pending_review') {
+        await supabaseRepositories.updateReminderJob(job.id, {
+          status: 'canceled',
+          canceled_at: new Date().toISOString(),
+          canceled_reason: 'regenerated',
+        });
+        canceledCount++;
+      }
+    }
+
     const allRules = await supabaseRepositories.listActiveReminderRules();
     const studyRules = getActiveRulesForStudy(allRules, participant.study_id);
 
@@ -41,6 +57,7 @@ export async function POST(
     }
 
     return NextResponse.json({
+      canceled: canceledCount,
       created: totalCreated,
       skipped: totalSkipped,
     });

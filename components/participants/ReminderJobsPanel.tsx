@@ -59,7 +59,7 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
   };
 
   const handleRegenerate = async () => {
-    if (!confirm('Generate reminder jobs for all existing visits?')) return;
+    if (!confirm('This will replace all pending reminder jobs with fresh ones. Continue?')) return;
     setRegenerating(true);
     try {
       const res = await fetch(`/api/participants/${participantId}/reminders`, { method: 'POST' });
@@ -67,7 +67,7 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
       if (!res.ok) {
         alert(`Failed: ${result.error || 'Unknown error'}`);
       } else {
-        alert(`Created ${result.created} reminder jobs (${result.skipped} skipped)`);
+        alert(`Canceled ${result.canceled} old, created ${result.created} new (${result.skipped} skipped)`);
       }
       onRefresh?.();
     } catch (err) {
@@ -99,7 +99,7 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
   }
 
   const sorted = [...jobs].sort(
-    (a, b) => new Date(b.scheduled_send_datetime).getTime() - new Date(a.scheduled_send_datetime).getTime()
+    (a, b) => new Date(a.scheduled_send_datetime).getTime() - new Date(b.scheduled_send_datetime).getTime()
   );
 
   return (
