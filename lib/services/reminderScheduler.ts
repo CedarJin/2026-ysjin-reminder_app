@@ -45,8 +45,8 @@ export function calculateSendDatetime(
         const sendDate = addDays(new Date(visit.scheduled_date + 'T00:00:00Z'), -14);
         return combineDateAndTime(splitDateTime(sendDate, timezone).date, '09:00', timezone);
       }
-      // Day 0 and Day 90 scheduling emails are sent immediately
-      return new Date();
+      // Day 0 and Day 90 scheduling emails are sent 10 minutes after scheduling
+      return new Date(Date.now() + 10 * 60 * 1000);
     }
 
     case 'relative_to_visit_date': {
