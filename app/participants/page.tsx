@@ -8,11 +8,11 @@ import { Participant } from '@/lib/db/schema';
 type StatusFilter = '' | 'active' | 'paused' | 'withdrawn' | 'completed';
 type SortKey = 'status' | 'study_id' | 'last_name';
 
-const STATUS_COLORS: Record<string, string> = {
-  active: 'bg-green-100 text-green-800',
-  paused: 'bg-yellow-100 text-yellow-800',
-  withdrawn: 'bg-red-100 text-red-800',
-  completed: 'bg-gray-100 text-gray-800',
+const STATUS_BADGE: Record<string, string> = {
+  active: 'badge-active',
+  paused: 'badge-paused',
+  withdrawn: 'badge-withdrawn',
+  completed: 'badge-completed',
 };
 
 export default function ParticipantsPage() {
@@ -100,7 +100,7 @@ export default function ParticipantsPage() {
   }, [participants, statusFilter, sortKey, sortDir]);
 
   const SortIcon = ({ k }: { k: SortKey }) => {
-    if (sortKey !== k) return <span className="ml-1 text-gray-300">↕</span>;
+    if (sortKey !== k) return <span className="ml-1 text-slate-300">&#x2195;</span>;
     return <span className="ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>;
   };
 
@@ -113,119 +113,164 @@ export default function ParticipantsPage() {
   ];
 
   return (
-    <main className="max-w-7xl mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Participants</h1>
-        <div className="space-x-4">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6 md:mb-8">
+        <div>
+          <h1 className="page-title">Participants</h1>
+          <p className="text-sm text-slate-500 mt-1">Manage study participants and their visit schedules</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
           <button onClick={() => setShowForm(!showForm)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            className={showForm ? 'btn-secondary' : 'btn-primary'}>
+            <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d={showForm ? 'M6 18L18 6M6 6l12 12' : 'M12 4.5v15m7.5-7.5h-15'} />
+            </svg>
             {showForm ? 'Cancel' : 'Add Participant'}
           </button>
-          <Link href="/dashboard"
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
-            Back to Dashboard
+          <Link href="/dashboard" className="btn-secondary">
+            <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Dashboard
           </Link>
         </div>
       </div>
 
+      {/* Create Form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md mb-6">
-          <h2 className="text-lg font-semibold mb-4">New Participant</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Study ID *</label>
-              <input type="text" required value={formData.studyId}
-                onChange={(e) => setFormData({ ...formData, studyId: e.target.value })}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2" />
+        <div className="card mb-6 md:mb-8">
+          <div className="card-body">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center">
+                <svg className="w-4 h-4 text-teal-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+              </div>
+              <h2 className="section-title">New Participant</h2>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Timezone</label>
-              <input type="text" value={formData.timezone}
-                onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">First Name *</label>
-              <input type="text" required value={formData.firstName}
-                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Last Name *</label>
-              <input type="text" required value={formData.lastName}
-                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2" />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">Email *</label>
-              <input type="email" required value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2" />
-            </div>
+            <form onSubmit={handleSubmit}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Study ID <span className="text-rose-500">*</span></label>
+                  <input type="text" required value={formData.studyId}
+                    onChange={(e) => setFormData({ ...formData, studyId: e.target.value })}
+                    className="input-field" placeholder="e.g. SUBJ-001" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Timezone</label>
+                  <input type="text" value={formData.timezone}
+                    onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
+                    className="input-field" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">First Name <span className="text-rose-500">*</span></label>
+                  <input type="text" required value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    className="input-field" placeholder="First name" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Last Name <span className="text-rose-500">*</span></label>
+                  <input type="text" required value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    className="input-field" placeholder="Last name" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Email <span className="text-rose-500">*</span></label>
+                  <input type="email" required value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="input-field" placeholder="participant@example.com" />
+                </div>
+              </div>
+              <div className="mt-4 flex items-center gap-2">
+                <button type="submit" disabled={submitting}
+                  className="btn-primary">
+                  {submitting ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Creating...
+                    </>
+                  ) : 'Create Participant'}
+                </button>
+                <button type="button" onClick={() => setShowForm(false)}
+                  className="btn-secondary">
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
-          <button type="submit" disabled={submitting}
-            className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50">
-            {submitting ? 'Creating...' : 'Create Participant'}
-          </button>
-        </form>
+        </div>
       )}
 
       {/* Status filter buttons */}
-      <div className="flex gap-2 mb-4 flex-wrap">
+      <div className="flex flex-wrap gap-2 mb-4">
         {statuses.map((s) => (
           <button key={s.key} onClick={() => setStatusFilter(s.key)}
-            className={`px-3 py-1 text-sm rounded-md ${
-              statusFilter === s.key ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}>
+            className={statusFilter === s.key ? 'filter-btn-active' : 'filter-btn-inactive'}>
             {s.label}
           </button>
         ))}
       </div>
 
+      {/* Table */}
       {loading ? (
-        <p>Loading...</p>
+        <div className="flex items-center justify-center py-12">
+          <div className="flex items-center gap-2 text-slate-500">
+            <svg className="animate-spin h-5 w-5 text-teal-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            <span className="text-sm">Loading participants...</span>
+          </div>
+        </div>
       ) : (
-        <div className="overflow-x-auto bg-white rounded-lg shadow">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Participant</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-700"
-                    onClick={() => handleSort('study_id')}>
-                  Study ID <SortIcon k="study_id" />
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-700"
-                    onClick={() => handleSort('status')}>
-                  Status <SortIcon k="status" />
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filtered.map((p) => (
-                <tr key={p.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{p.first_name} {p.last_name}</div>
-                    <div className="text-sm text-gray-500">{p.email}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{p.study_id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${STATUS_COLORS[p.status] || 'bg-gray-100 text-gray-800'}`}>
-                      {p.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <Link href={`/participants/${p.id}`} className="text-blue-600 hover:text-blue-900">View</Link>
-                  </td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
+        <div className="card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="data-table">
+              <thead>
                 <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-sm text-gray-500">No participants found.</td>
+                  <th>Participant</th>
+                  <th className="cursor-pointer select-none hover:text-slate-700" onClick={() => handleSort('study_id')}>
+                    Study ID <SortIcon k="study_id" />
+                  </th>
+                  <th className="cursor-pointer select-none hover:text-slate-700" onClick={() => handleSort('status')}>
+                    Status <SortIcon k="status" />
+                  </th>
+                  <th>Actions</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filtered.map((p) => (
+                  <tr key={p.id}>
+                    <td>
+                      <div className="text-sm font-medium text-slate-900">{p.first_name} {p.last_name}</div>
+                      <div className="text-sm text-slate-500">{p.email}</div>
+                    </td>
+                    <td className="text-sm text-slate-600 font-mono">{p.study_id}</td>
+                    <td>
+                      <span className={STATUS_BADGE[p.status] || 'badge-completed'}>
+                        {p.status}
+                      </span>
+                    </td>
+                    <td>
+                      <Link href={`/participants/${p.id}`}
+                        className="btn-ghost text-teal-600 hover:text-teal-700 hover:bg-teal-50 -ml-2">
+                        View Profile
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="text-center text-sm text-slate-500 py-8">No participants found.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </main>

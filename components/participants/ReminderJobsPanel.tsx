@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ReminderJob } from '@/lib/db/schema';
 
 interface ReminderJobsPanelProps {
@@ -9,12 +9,12 @@ interface ReminderJobsPanelProps {
   onRefresh?: () => void;
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  scheduled: 'bg-blue-100 text-blue-800',
-  sent: 'bg-green-100 text-green-800',
-  failed: 'bg-red-100 text-red-800',
-  canceled: 'bg-gray-200 text-gray-600',
-  skipped: 'bg-gray-100 text-gray-500',
+const STATUS_BADGE: Record<string, string> = {
+  scheduled: 'badge-scheduled',
+  sent: 'badge-sent',
+  failed: 'badge-failed',
+  canceled: 'badge-canceled',
+  skipped: 'badge-completed',
 };
 
 const PHASE_LABELS: Record<string, string> = {
@@ -42,7 +42,7 @@ function formatDateInput(d: string): string {
 function isOverdue(job: ReminderJob): boolean {
   if (job.status !== 'scheduled') return false;
   const diff = Date.now() - new Date(job.scheduled_send_datetime).getTime();
-  return diff > 12 * 60 * 60 * 1000; // overdue by more than 12 hours
+  return diff > 12 * 60 * 60 * 1000;
 }
 
 function getStatusRank(status: string): number {
@@ -183,58 +183,73 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
   });
 
   const SortIcon = ({ column }: { column: SortKey }) => {
-    if (sortKey !== column) return <span className="ml-1 text-gray-300">↕</span>;
+    if (sortKey !== column) return <span className="ml-1 text-slate-300">&#x2195;</span>;
     return <span className="ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>;
   };
 
   if (jobs.length === 0) {
     return (
-      <div className="bg-white p-4 rounded-lg shadow">
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="text-lg font-semibold">Reminder Emails</h2>
-          <button onClick={handleRegenerate} disabled={regenerating}
-            className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
-            {regenerating ? 'Generating...' : 'Regenerate'}
-          </button>
+      <div className="card">
+        <div className="card-body">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+              </svg>
+              <h2 className="section-title">Reminder Emails</h2>
+            </div>
+            <button onClick={handleRegenerate} disabled={regenerating}
+              className="btn-primary text-xs">
+              {regenerating ? 'Generating...' : 'Regenerate'}
+            </button>
+          </div>
+          <p className="text-sm text-slate-500">No reminder jobs yet.</p>
         </div>
-        <p className="text-sm text-gray-500">No reminder jobs yet.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow">
-      <div className="flex justify-between items-center mb-3">
-        <h2 className="text-lg font-semibold">Reminder Emails</h2>
-        <button onClick={handleRegenerate} disabled={regenerating}
-          className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
-          {regenerating ? 'Generating...' : 'Regenerate'}
-        </button>
+    <div className="card overflow-hidden">
+      <div className="card-body border-b border-slate-100">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+            </svg>
+            <h2 className="section-title">Reminder Emails</h2>
+            <span className="text-xs text-slate-400 font-medium bg-slate-100 px-2 py-0.5 rounded-full">{jobs.length} jobs</span>
+          </div>
+          <button onClick={handleRegenerate} disabled={regenerating}
+            className="btn-secondary text-xs">
+            {regenerating ? 'Generating...' : 'Regenerate'}
+          </button>
+        </div>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="data-table">
           <thead>
-            <tr className="border-b text-left text-xs text-gray-500 uppercase">
-              <th className="pb-2 pr-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('email_name')}>
+            <tr>
+              <th className="cursor-pointer select-none hover:text-slate-700" onClick={() => handleSort('email_name')}>
                 Email <SortIcon column="email_name" />
               </th>
-              <th className="pb-2 pr-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('phase')}>
+              <th className="cursor-pointer select-none hover:text-slate-700" onClick={() => handleSort('phase')}>
                 Phase <SortIcon column="phase" />
               </th>
-              <th className="pb-2 pr-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('status')}>
+              <th className="cursor-pointer select-none hover:text-slate-700" onClick={() => handleSort('status')}>
                 Status <SortIcon column="status" />
               </th>
-              <th className="pb-2 pr-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('overdue')}>
+              <th className="cursor-pointer select-none hover:text-slate-700" onClick={() => handleSort('overdue')}>
                 Overdue <SortIcon column="overdue" />
               </th>
-              <th className="pb-2 pr-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('scheduled_send_datetime')}>
+              <th className="cursor-pointer select-none hover:text-slate-700" onClick={() => handleSort('scheduled_send_datetime')}>
                 Scheduled Send <SortIcon column="scheduled_send_datetime" />
               </th>
-              <th className="pb-2 pr-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('sent_at')}>
+              <th className="cursor-pointer select-none hover:text-slate-700" onClick={() => handleSort('sent_at')}>
                 Sent At <SortIcon column="sent_at" />
               </th>
-              <th className="pb-2 pr-3">Template</th>
-              <th className="pb-2 pr-3">Action</th>
+              <th>Template</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -244,96 +259,109 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
 
               if (isEditing) {
                 return (
-                  <tr key={job.id} className="border-b last:border-0 bg-yellow-50">
-                    <td className="py-2 pr-3 max-w-[200px] truncate">{job.email_name}</td>
-                    <td className="py-2 pr-3">
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100">
+                  <tr key={job.id} className="bg-amber-50/60">
+                    <td className="max-w-[180px] truncate font-medium text-slate-900" title={job.email_name}>
+                      {job.email_name}
+                    </td>
+                    <td>
+                      <span className="badge-completed">
                         {PHASE_LABELS[job.phase] || job.phase}
                       </span>
                     </td>
-                    <td className="py-2 pr-3">{job.status}</td>
-                    <td className="py-2 pr-3">—</td>
-                    <td className="py-2 pr-3" colSpan={2}>
-                      <input type="date" value={editDate}
-                        onChange={(e) => setEditDate(e.target.value)}
-                        className="text-xs border rounded px-1 py-0.5 w-28" />
-                      <input type="time" value={editTime}
-                        onChange={(e) => setEditTime(e.target.value)}
-                        className="text-xs border rounded px-1 py-0.5 w-20 ml-1" />
+                    <td><span className="text-sm text-slate-600">{job.status}</span></td>
+                    <td><span className="text-sm text-slate-300">&mdash;</span></td>
+                    <td colSpan={2}>
+                      <div className="flex items-center gap-1.5">
+                        <input type="date" value={editDate}
+                          onChange={(e) => setEditDate(e.target.value)}
+                          className="input-field text-xs py-1 px-2 w-32" />
+                        <input type="time" value={editTime}
+                          onChange={(e) => setEditTime(e.target.value)}
+                          className="input-field text-xs py-1 px-2 w-24" />
+                      </div>
                     </td>
-                    <td className="py-2 pr-3">{job.template_id}</td>
-                    <td className="py-2 pr-3 whitespace-nowrap">
-                      <button onClick={() => saveEdit(job.id)} disabled={savingEdit}
-                        className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 mr-1">
-                        {savingEdit ? 'Saving...' : 'Save'}
-                      </button>
-                      <button onClick={cancelEdit}
-                        className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
-                        Cancel
-                      </button>
+                    <td className="text-xs text-slate-500">{job.template_id}</td>
+                    <td>
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => saveEdit(job.id)} disabled={savingEdit}
+                          className="px-2 py-1 text-xs bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50">
+                          {savingEdit ? 'Saving...' : 'Save'}
+                        </button>
+                        <button onClick={cancelEdit}
+                          className="px-2 py-1 text-xs bg-white border border-slate-300 text-slate-600 rounded hover:bg-slate-50">
+                          Cancel
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
               }
 
               return (
-                <tr key={job.id} className={`border-b last:border-0 hover:bg-gray-50 ${overdue ? 'bg-red-50' : ''}`}>
-                  <td className="py-2 pr-3 max-w-[200px] truncate" title={job.email_name}>
+                <tr key={job.id} className={`${overdue ? 'bg-rose-50/60' : ''}`}>
+                  <td className="max-w-[180px] truncate font-medium text-slate-900" title={job.email_name}>
                     {job.email_name}
                   </td>
-                  <td className="py-2 pr-3">
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-700">
+                  <td>
+                    <span className="badge-completed">
                       {PHASE_LABELS[job.phase] || job.phase}
                     </span>
                   </td>
-                  <td className="py-2 pr-3">
-                    <span className={`text-xs px-2 py-0.5 rounded font-medium ${STATUS_COLORS[job.status] || 'bg-gray-100 text-gray-800'}`}>
+                  <td>
+                    <span className={STATUS_BADGE[job.status] || 'badge-completed'}>
                       {job.status.replace('_', ' ')}
                     </span>
                   </td>
-                  <td className="py-2 pr-3">
+                  <td>
                     {overdue ? (
-                      <span className="text-xs px-2 py-0.5 rounded font-medium bg-red-200 text-red-800">overdue</span>
+                      <span className="badge-overdue">overdue</span>
                     ) : (
-                      <span className="text-xs text-gray-300">—</span>
+                      <span className="text-xs text-slate-300">&mdash;</span>
                     )}
                   </td>
-                  <td className="py-2 pr-3 whitespace-nowrap">
+                  <td className="whitespace-nowrap text-slate-600">
                     {formatDateTime(job.scheduled_send_datetime)}
                   </td>
-                  <td className="py-2 pr-3 whitespace-nowrap">
+                  <td className="whitespace-nowrap text-slate-600">
                     {formatDateTime(job.sent_at)}
                   </td>
-                  <td className="py-2 pr-3 text-xs text-gray-500 max-w-[100px] truncate" title={job.template_id}>
+                  <td className="text-xs text-slate-500 max-w-[100px] truncate" title={job.template_id}>
                     {job.template_id}
                   </td>
-                  <td className="py-2 pr-3 whitespace-nowrap">
-                    {job.status === 'scheduled' && (
-                      <>
+                  <td>
+                    <div className="flex items-center gap-1 flex-wrap">
+                      {job.status === 'scheduled' && (
+                        <>
+                          <button onClick={() => handleSendNow(job.id)} disabled={sending === job.id}
+                            className="px-2 py-1 text-xs bg-emerald-600 text-white rounded hover:bg-emerald-700 disabled:opacity-50">
+                            {sending === job.id ? '...' : 'Send Now'}
+                          </button>
+                          <button onClick={() => handleCancel(job.id)}
+                            className="px-2 py-1 text-xs bg-rose-500 text-white rounded hover:bg-rose-600">
+                            Cancel
+                          </button>
+                        </>
+                      )}
+                      {job.status === 'failed' && (
                         <button onClick={() => handleSendNow(job.id)} disabled={sending === job.id}
-                          className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 mr-1">
+                          className="px-2 py-1 text-xs bg-emerald-600 text-white rounded hover:bg-emerald-700 disabled:opacity-50">
                           {sending === job.id ? '...' : 'Send Now'}
                         </button>
-                        <button onClick={() => handleCancel(job.id)}
-                          className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 mr-1">
-                          Cancel
-                        </button>
-                      </>
-                    )}
-                    {job.status === 'failed' && (
-                      <button onClick={() => handleSendNow(job.id)} disabled={sending === job.id}
-                        className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 mr-1">
-                        {sending === job.id ? '...' : 'Send Now'}
+                      )}
+                      <button onClick={() => startEdit(job)}
+                        className="px-2 py-1 text-xs bg-white border border-slate-300 text-slate-600 rounded hover:bg-slate-50">
+                        Edit
                       </button>
-                    )}
-                    <button onClick={() => startEdit(job)}
-                      className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600">
-                      Edit
-                    </button>
+                    </div>
                   </td>
                 </tr>
               );
             })}
+            {sorted.length === 0 && (
+              <tr>
+                <td colSpan={8} className="text-center text-sm text-slate-500 py-8">No reminder jobs found.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

@@ -7,55 +7,63 @@ interface ParticipantTableProps {
   participants: Participant[];
 }
 
+const STATUS_BADGE: Record<string, string> = {
+  active: 'badge-active',
+  paused: 'badge-paused',
+  withdrawn: 'badge-withdrawn',
+  completed: 'badge-completed',
+};
+
 export default function ParticipantTable({ participants }: ParticipantTableProps) {
   return (
-    <div className="overflow-x-auto bg-white rounded-lg shadow">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Participant</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Study ID</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {participants.map((participant) => (
-            <tr key={participant.id}>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm font-medium text-gray-900">
-                  {participant.first_name} {participant.last_name}
-                </div>
-                <div className="text-sm text-gray-500">{participant.email}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {participant.study_id}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span
-                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    participant.status === 'active'
-                      ? 'bg-green-100 text-green-800'
-                      : participant.status === 'paused'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}
-                >
-                  {participant.status}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <Link
-                  href={`/participants/${participant.id}`}
-                  className="text-blue-600 hover:text-blue-900"
-                >
-                  View
-                </Link>
-              </td>
+    <div className="card overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Participant</th>
+              <th>Study ID</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {participants.map((participant) => (
+              <tr key={participant.id}>
+                <td>
+                  <div className="text-sm font-medium text-slate-900">
+                    {participant.first_name} {participant.last_name}
+                  </div>
+                  <div className="text-sm text-slate-500">{participant.email}</div>
+                </td>
+                <td className="text-sm text-slate-600 font-mono">
+                  {participant.study_id}
+                </td>
+                <td>
+                  <span className={STATUS_BADGE[participant.status] || 'badge-completed'}>
+                    {participant.status}
+                  </span>
+                </td>
+                <td>
+                  <Link
+                    href={`/participants/${participant.id}`}
+                    className="btn-ghost text-teal-600 hover:text-teal-700 hover:bg-teal-50 -ml-2"
+                  >
+                    View Profile
+                  </Link>
+                </td>
+              </tr>
+            ))}
+            {participants.length === 0 && (
+              <tr>
+                <td colSpan={4} className="px-4 py-8 text-center text-sm text-slate-500">
+                  No active participants found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
