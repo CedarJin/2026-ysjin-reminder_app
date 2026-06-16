@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Participant } from '@/lib/db/schema';
 
 type StatusFilter = '' | 'active' | 'paused' | 'withdrawn' | 'completed';
@@ -21,6 +22,7 @@ export default function ParticipantsPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('');
   const [sortKey, setSortKey] = useState<SortKey>('study_id');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     studyId: '',
@@ -54,9 +56,8 @@ export default function ParticipantsPage() {
         body: JSON.stringify(formData),
       });
       if (res.ok) {
-        setFormData({ studyId: '', firstName: '', lastName: '', email: '', timezone: 'America/Los_Angeles' });
-        setShowForm(false);
-        loadParticipants();
+        const created = await res.json();
+        router.push(`/participants/${created.id}`);
       } else {
         const err = await res.json();
         alert(err.error || 'Failed to create participant');
