@@ -204,13 +204,7 @@ export const supabaseRepositories: Repositories = {
       })
       .select()
       .single();
-    if (error) {
-      // Unique constraint violation — job already exists for this (participant, rule, send_time, visit_snapshot)
-      if ((error as { code?: string })?.code === '23505') {
-        return null as never;
-      }
-      throw error;
-    }
+    if (error) throw error;
     return result as ReminderJob;
   },
 
