@@ -24,23 +24,21 @@ export async function POST(
     const allRules = await supabaseRepositories.listActiveReminderRules();
     const studyRules = getActiveRulesForStudy(allRules, participant.study_id);
 
-    // Collect all existing jobs for this participant for quick lookup
+    // Collect all existing jobs for this participant
     const existingJobs = await supabaseRepositories.listReminderJobs({
       participantId: params.id,
     });
 
-    // Build a lookup key -> job map
-    const jobByKey = new Map<string, typeof existingJobs[number]>();
+    // Build a set of (rule_id, visit_id) combinations that already have jobs
+    const existingRuleVisit = new Set<string>();
     for (const job of existingJobs) {
-      if (job.rule_id && job.scheduled_send_datetime && job.visit_datetime_snapshot) {
-        const key = `${job.rule_id}:${job.scheduled_send_datetime}:${job.visit_datetime_snapshot}`;
-        jobByKey.set(key, job);
+      if (job.rule_id && job.visit_id) {
+        existingRuleVisit.add(`${job.rule_id}:${job.visit_id}`);
       }
     }
 
-    let revivedCount = 0;
     let createdCount = 0;
-    let duplicateCount = 0;
+    let skipCount = 0;
 
     for (const visit of visits) {
       const relevantRules = studyRules.filter((r) => {
@@ -49,54 +47,27 @@ export async function POST(
       });
 
       for (const rule of relevantRules) {
-        const sendDatetime = calculateSendDatetime(rule, visit, participant.timezone);
-        if (!sendDatetime) continue;
+        const key = `${rule.rule_id}:${visit.id}`;
 
-        const { date: sendDate, time: sendTime } = splitDateTime(sendDatetime, participant.timezone);
-        const visitSnapshot = visit.scheduled_datetime;
-        const key = `${rule.rule_id}:${sendDatetime.toISOString()}:${visitSnapshot}`;
-
-        const existing = jobByKey.get(key);
-
-        if (existing) {
-          if (existing.status === 'sent') {
-            // Already sent for this schedule — skip
-            duplicateCount++;
-            continue;
-          }
-          // Revive canceled or update failed
-          if (existing.status === 'canceled' || existing.status === 'failed' || existing.status === 'skipped') {
-            await supabaseRepositories.updateReminderJob(existing.id, {
-              status: 'scheduled',
-              canceled_at: null,
-              canceled_reason: null,
-              last_error: null,
-              scheduled_send_datetime: sendDatetime.toISOString(),
-              scheduled_send_date: sendDate,
-              scheduled_send_time: sendTime,
-            });
-            revivedCount++;
-            continue;
-          }
-          // Already scheduled/pending_review — keep as is
-          if (existing.status === 'scheduled' || existing.status === 'pending_review') {
-            duplicateCount++;
-            continue;
-          }
+        if (existingRuleVisit.has(key)) {
+          skipCount++;
           continue;
         }
 
         // No existing job — create new one
+        const sendDatetime = calculateSendDatetime(rule, visit, participant.timezone);
+        if (!sendDatetime) continue;
+
+        const { date: sendDate, time: sendTime } = splitDateTime(sendDatetime, participant.timezone);
         const now = new Date();
         const jobStatus = sendDatetime < now ? ('pending_review' as const) : ('scheduled' as const);
         const reason = jobStatus === 'pending_review' ? 'Send time is in the past' : null;
-        const visitObj = visits.find((v) => v.id === visit.id) || visit;
 
         await supabaseRepositories.createReminderJob({
           reminder_id: `rem_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
           participant_id: participant.id,
           study_id: participant.study_id,
-          visit_id: visitObj.id,
+          visit_id: visit.id,
           phase: rule.phase,
           rule_id: rule.rule_id,
           email_name: rule.email_name,
@@ -104,9 +75,9 @@ export async function POST(
           scheduled_send_date: sendDate,
           scheduled_send_time: sendTime,
           scheduled_send_datetime: sendDatetime.toISOString(),
-          visit_date_snapshot: visitObj.scheduled_date,
-          visit_time_snapshot: visitObj.scheduled_time,
-          visit_datetime_snapshot: visitObj.scheduled_datetime,
+          visit_date_snapshot: visit.scheduled_date,
+          visit_time_snapshot: visit.scheduled_time,
+          visit_datetime_snapshot: visit.scheduled_datetime,
           status: jobStatus,
           sent_at: null,
           canceled_at: null,
@@ -119,9 +90,8 @@ export async function POST(
     }
 
     return NextResponse.json({
-      revived: revivedCount,
       created: createdCount,
-      duplicates_skipped: duplicateCount,
+      already_exist: skipCount,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
