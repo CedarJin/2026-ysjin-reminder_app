@@ -11,6 +11,7 @@ interface ReminderJob {
   scheduled_send_datetime: string;
   sent_at: string | null;
   participant_id: string;
+  study_id?: string;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -121,6 +122,7 @@ export default function RemindersPage() {
             <thead>
               <tr className="border-b text-left text-xs text-gray-500 uppercase bg-gray-50">
                 <th className="px-4 py-3">Email</th>
+                <th className="px-4 py-3">Participant</th>
                 <th className="px-4 py-3">Phase</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Overdue</th>
@@ -135,6 +137,9 @@ export default function RemindersPage() {
                 return (
                 <tr key={job.id} className={`border-b last:border-0 hover:bg-gray-50 ${overdue ? 'bg-red-50' : ''}`}>
                   <td className="px-4 py-3 max-w-[250px] truncate">{job.email_name}</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                    {job.study_id || '—'}
+                  </td>
                   <td className="px-4 py-3">
                     <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100">
                       {PHASE_LABELS[job.phase] || job.phase}
@@ -169,7 +174,7 @@ export default function RemindersPage() {
               })}
               {sorted.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-gray-500">No reminder jobs found.</td>
+                  <td colSpan={8} className="px-4 py-8 text-center text-gray-500">No reminder jobs found.</td>
                 </tr>
               )}
             </tbody>
