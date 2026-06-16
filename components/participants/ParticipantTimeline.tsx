@@ -48,6 +48,8 @@ export default function ParticipantTimeline({
                     className={`font-medium ${
                       visit.status === 'scheduled'
                         ? 'text-blue-600'
+                        : visit.status === 'rescheduled'
+                        ? 'text-orange-600'
                         : visit.status === 'canceled'
                         ? 'text-red-600'
                         : 'text-gray-600'
@@ -72,22 +74,44 @@ export default function ParticipantTimeline({
               <div className="mt-2">
                 <p className="text-xs font-medium text-gray-500 uppercase">Emails</p>
                 <ul className="text-sm space-y-1">
-                  {phaseJobs.map((job) => (
-                    <li key={job.id} className="flex justify-between">
-                      <span>{job.email_name}</span>
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded ${
-                          job.status === 'sent'
-                            ? 'bg-green-100 text-green-800'
-                            : job.status === 'scheduled'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {job.status}
-                      </span>
-                    </li>
-                  ))}
+                  {phaseJobs.map((job) => {
+                    // Check if this job was from a PREVIOUS (pre-reschedule) visit datetime
+                    const isOldSchedule =
+                      visit &&
+                      visit.status === 'rescheduled' &&
+                      job.visit_datetime_snapshot &&
+                      job.visit_datetime_snapshot !== visit.scheduled_datetime;
+
+                    return (
+                      <li key={job.id} className="flex items-center gap-2">
+                        <span className={isOldSchedule ? 'text-gray-400' : ''}>
+                          {job.email_name}
+                          {isOldSchedule && (
+                            <span className="ml-1 text-xs text-orange-500 font-medium">(旧排期)</span>
+                          )}
+                        </span>
+                        {isOldSchedule && job.status === 'sent' ? (
+                          <span className="text-xs px-2 py-0.5 rounded bg-gray-200 text-gray-500">
+                            superseded
+                          </span>
+                        ) : (
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded ${
+                              job.status === 'sent'
+                                ? 'bg-green-100 text-green-800'
+                                : job.status === 'scheduled'
+                                ? 'bg-blue-100 text-blue-800'
+                                : job.status === 'canceled'
+                                ? 'bg-gray-200 text-gray-500'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}
+                          >
+                            {job.status.replace('_', ' ')}
+                          </span>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             )}
