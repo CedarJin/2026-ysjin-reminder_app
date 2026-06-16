@@ -1,8 +1,16 @@
 import { Repositories } from '../repositories/types';
 import { renderTemplate, validateVariables, buildVariableMapForJob } from './templateRenderer';
 import { createSendGridClient } from './sendGridClient';
-import { createSmtpClient } from './smtpClient';
+import { createSmtpClient, SendEmailInput as SmtpInput } from './smtpClient';
 import { logAudit } from '../services/auditLogger';
+
+/** Convert plain text with **bold** markers to HTML */
+function bodyToHtml(text: string): string {
+  // Convert **text** to <strong>text</strong>
+  const withStrong = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Convert double newlines to paragraph breaks, single newlines to <br>
+  return withStrong.split(/\n{2,}/).map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('\n');
+}
 
 export interface SendReminderOptions {
   disableSending?: boolean;
@@ -153,6 +161,8 @@ async function sendEmailViaProvider(input: {
     return { success: false, error: 'No from email configured' };
   }
 
+  const htmlBody = bodyToHtml(input.body);
+
   // Prefer SMTP if configured
   const smtpHost = process.env.SMTP_HOST;
   const smtpPort = process.env.SMTP_PORT;
@@ -174,6 +184,7 @@ async function sendEmailViaProvider(input: {
       from: fromEmail,
       subject: input.subject,
       body: input.body,
+      html: htmlBody,
     });
   }
 
@@ -193,6 +204,7 @@ async function sendEmailViaProvider(input: {
     from: fromEmail,
     subject: input.subject,
     body: input.body,
+    html: htmlBody,
   });
 }
 

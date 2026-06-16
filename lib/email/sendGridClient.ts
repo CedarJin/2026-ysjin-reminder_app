@@ -6,6 +6,7 @@ export interface SendEmailInput {
   from: string;
   subject: string;
   body: string;
+  html?: string;
 }
 
 export interface SendEmailResult {
@@ -26,6 +27,7 @@ export function createSendGridClient(apiKey: string) {
           from: input.from,
           subject: input.subject,
           text: input.body,
+          html: input.html || input.body.replace(/\n/g, '<br>\n'),
         });
 
         return {
