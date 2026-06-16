@@ -102,6 +102,13 @@ export async function sendReminderJob(
   const subject = renderTemplate(template.subject, variables);
   const body = renderTemplate(template.body, variables);
 
+  // Determine CC list based on email type
+  const isDietEmail =
+    job.template_id?.includes('patternized') || job.template_id?.includes('habitual');
+  const cc = isDietEmail
+    ? ['ysjin@health.ucdavis.edu', 'qbsun@health.ucdavis.edu']
+    : ['ysjin@health.ucdavis.edu', 'qbsun@health.ucdavis.edu', 'smgarcia@health.ucdavis.edu'];
+
   const disableSending =
     options.disableSending || process.env.DISABLE_EMAIL_SENDING === 'true';
 
@@ -110,7 +117,7 @@ export async function sendReminderJob(
   if (!disableSending) {
     const result = await sendEmailViaProvider({
       to: participant.email,
-      cc: 'ysjin@health.ucdavis.edu',
+      cc,
       subject,
       body,
       fromEmail: options.fromEmail,
