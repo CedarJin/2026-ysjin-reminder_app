@@ -12,9 +12,16 @@ export async function GET() {
       dueBefore: now,
     });
 
+    // Only auto-send jobs that became due within the last 1 minute.
+    // Older overdue jobs stay as 'scheduled' for manual review (Send Now).
+    const recentJobs = dueJobs.filter((job) => {
+      const sendTime = new Date(job.scheduled_send_datetime).getTime();
+      return now.getTime() - sendTime < 60000;
+    });
+
     const results: Array<{ id: string; status: string }> = [];
 
-    for (const job of dueJobs) {
+    for (const job of recentJobs) {
       try {
         const result = await sendReminderJob(supabaseRepositories, job.id);
         results.push({ id: job.id, status: result.status });
@@ -24,7 +31,9 @@ export async function GET() {
     }
 
     return NextResponse.json({
-      processed: dueJobs.length,
+      processed: recentJobs.length,
+      total_due: dueJobs.length,
+      overdue_skipped: dueJobs.length - recentJobs.length,
       results,
     });
   } catch (error) {

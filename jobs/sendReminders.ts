@@ -15,9 +15,15 @@ triggerClient.defineJob({
       dueBefore: now,
     });
 
-    io.logger.info(`Found ${dueJobs.length} due reminder jobs`);
+    // Only auto-send jobs due within the last minute; older ones need manual review
+    const recentJobs = dueJobs.filter((job) => {
+      const sendTime = new Date(job.scheduled_send_datetime).getTime();
+      return now.getTime() - sendTime < 60000;
+    });
 
-    for (const job of dueJobs) {
+    io.logger.info(`Found ${dueJobs.length} due, ${recentJobs.length} auto-sent, ${dueJobs.length - recentJobs.length} overdue (manual)`);
+
+    for (const job of recentJobs) {
       try {
         const result = await sendReminderJob(supabaseRepositories, job.id);
         if (result.success) {
@@ -31,6 +37,6 @@ triggerClient.defineJob({
       }
     }
 
-    return { processed: dueJobs.length };
+    return { processed: recentJobs.length, overdue: dueJobs.length - recentJobs.length };
   },
 });
