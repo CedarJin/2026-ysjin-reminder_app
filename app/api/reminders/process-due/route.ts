@@ -30,12 +30,21 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json({
-      processed: recentJobs.length,
-      total_due: dueJobs.length,
-      overdue_skipped: dueJobs.length - recentJobs.length,
-      results,
-    });
+    return NextResponse.json(
+      {
+        processed: recentJobs.length,
+        total_due: dueJobs.length,
+        overdue_skipped: dueJobs.length - recentJobs.length,
+        results,
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, private, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      }
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 500 });
