@@ -317,7 +317,7 @@ export default function ParticipantDetailPage() {
 
       {/* Reminder Jobs Panel */}
       <div className="mt-2">
-        <ReminderJobsPanel jobs={jobs} participantId={participantId} onRefresh={refreshData} />
+        <ReminderJobsPanel jobs={jobs} participantId={participantId} participantTimezone={participant.timezone} onRefresh={refreshData} />
       </div>
     </main>
   );

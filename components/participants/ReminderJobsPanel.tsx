@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import { ReminderJob } from '@/lib/db/schema';
+import { fromZonedTime } from 'date-fns-tz';
 
 interface ReminderJobsPanelProps {
   jobs: ReminderJob[];
   participantId: string;
+  participantTimezone: string;
   onRefresh?: () => void;
 }
 
@@ -50,7 +52,7 @@ function getStatusRank(status: string): number {
   return 1;
 }
 
-export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: ReminderJobsPanelProps) {
+export default function ReminderJobsPanel({ jobs, participantId, participantTimezone, onRefresh }: ReminderJobsPanelProps) {
   const [sending, setSending] = useState<string | null>(null);
   const [regenerating, setRegenerating] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>('scheduled_send_datetime');
@@ -101,7 +103,7 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
 
   const startEdit = (job: ReminderJob) => {
     setEditingId(job.id);
-    setEditDate(formatDateInput(job.scheduled_send_datetime));
+    setEditDate(job.scheduled_send_date || formatDateInput(job.scheduled_send_datetime));
     setEditTime(job.scheduled_send_time?.slice(0, 5) || '09:00');
   };
 
@@ -112,7 +114,10 @@ export default function ReminderJobsPanel({ jobs, participantId, onRefresh }: Re
   const saveEdit = async (jobId: string) => {
     setSavingEdit(true);
     try {
-      const newDatetime = `${editDate}T${editTime}:00`;
+      // Convert from participant's timezone to UTC for storage
+      const utcDate = fromZonedTime(`${editDate}T${editTime}:00`, participantTimezone);
+      const newDatetime = utcDate.toISOString();
+
       const res = await fetch(`/api/reminders/${jobId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
