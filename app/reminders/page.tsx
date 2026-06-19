@@ -30,10 +30,13 @@ const PHASE_LABELS: Record<string, string> = {
   week18: 'Week 18',
 };
 
+const LA_TZ = 'America/Los_Angeles';
+
 function formatDateTime(iso: string | null | undefined): string {
   if (!iso) return '—';
   return new Date(iso).toLocaleString('en-US', {
     month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+    timeZone: LA_TZ,
   });
 }
 

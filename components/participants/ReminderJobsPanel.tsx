@@ -30,10 +30,13 @@ const PHASE_LABELS: Record<string, string> = {
 type SortKey = 'email_name' | 'phase' | 'status' | 'scheduled_send_datetime' | 'sent_at' | 'overdue';
 type SortDir = 'asc' | 'desc';
 
+const LA_TZ = 'America/Los_Angeles';
+
 function formatDateTime(iso: string | null | undefined): string {
   if (!iso) return '—';
   return new Date(iso).toLocaleString('en-US', {
     month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+    timeZone: LA_TZ,
   });
 }
 
