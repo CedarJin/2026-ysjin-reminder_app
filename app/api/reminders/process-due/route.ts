@@ -3,6 +3,18 @@ import { supabaseRepositories } from '@/lib/repositories/supabase';
 import { sendReminderJob } from '@/lib/email/emailSender';
 
 export async function GET() {
+  return processDue();
+}
+
+/**
+ * POST also handles due jobs — Vercel doesn't cache POST at the edge,
+ * so this is the reliable way for cron-job.org to trigger processing.
+ */
+export async function POST() {
+  return processDue();
+}
+
+async function processDue() {
   try {
     const now = new Date();
 
