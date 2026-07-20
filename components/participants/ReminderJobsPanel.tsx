@@ -61,6 +61,7 @@ export default function ReminderJobsPanel({ jobs, participantId, participantTime
   const [sortKey, setSortKey] = useState<SortKey>('scheduled_send_datetime');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingStatus, setEditingStatus] = useState<string | null>(null);
   const [editDate, setEditDate] = useState('');
   const [editTime, setEditTime] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
@@ -77,6 +78,25 @@ export default function ReminderJobsPanel({ jobs, participantId, participantTime
   const handleSendNow = async (jobId: string) => {
     setSending(jobId);
     try {
+      // If job was canceled or failed, reactivate it first so sendReminderJob accepts it
+      const job = sorted.find((j) => j.id === jobId);
+      if (job && (job.status === 'canceled' || job.status === 'failed')) {
+        const patchRes = await fetch(`/api/reminders/${jobId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            status: 'scheduled',
+            canceled_at: null,
+            canceled_reason: null,
+          }),
+        });
+        if (!patchRes.ok) {
+          const err = await patchRes.json();
+          alert(`Re-activation failed: ${err.error || 'Unknown error'}`);
+          return;
+        }
+      }
+
       const res = await fetch(`/api/reminders/${jobId}/send`, { method: 'POST' });
       const result = await res.json();
       if (!result.success) alert(`Send failed: ${result.error || 'Unknown error'}`);
@@ -106,12 +126,14 @@ export default function ReminderJobsPanel({ jobs, participantId, participantTime
 
   const startEdit = (job: ReminderJob) => {
     setEditingId(job.id);
+    setEditingStatus(job.status);
     setEditDate(job.scheduled_send_date || formatDateInput(job.scheduled_send_datetime));
     setEditTime(job.scheduled_send_time?.slice(0, 5) || '09:00');
   };
 
   const cancelEdit = () => {
     setEditingId(null);
+    setEditingStatus(null);
   };
 
   const saveEdit = async (jobId: string) => {
@@ -121,14 +143,23 @@ export default function ReminderJobsPanel({ jobs, participantId, participantTime
       const utcDate = fromZonedTime(`${editDate}T${editTime}:00`, participantTimezone);
       const newDatetime = utcDate.toISOString();
 
+      const body: Record<string, unknown> = {
+        scheduled_send_date: editDate,
+        scheduled_send_time: editTime,
+        scheduled_send_datetime: newDatetime,
+      };
+
+      // If the job was canceled, reactivate it so it will be sent
+      if (editingStatus === 'canceled') {
+        body.status = 'scheduled';
+        body.canceled_at = null;
+        body.canceled_reason = null;
+      }
+
       const res = await fetch(`/api/reminders/${jobId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          scheduled_send_date: editDate,
-          scheduled_send_time: editTime,
-          scheduled_send_datetime: newDatetime,
-        }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -136,6 +167,7 @@ export default function ReminderJobsPanel({ jobs, participantId, participantTime
       }
       onRefresh?.();
       setEditingId(null);
+      setEditingStatus(null);
     } catch (err) {
       alert(`Network error: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
@@ -350,7 +382,7 @@ export default function ReminderJobsPanel({ jobs, participantId, participantTime
                           </button>
                         </>
                       )}
-                      {job.status === 'failed' && (
+                      {(job.status === 'failed' || job.status === 'canceled') && (
                         <button onClick={() => handleSendNow(job.id)} disabled={sending === job.id}
                           className="px-2 py-1 text-xs bg-emerald-600 text-white rounded hover:bg-emerald-700 disabled:opacity-50">
                           {sending === job.id ? '...' : 'Send Now'}
