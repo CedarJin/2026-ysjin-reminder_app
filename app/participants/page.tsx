@@ -152,8 +152,8 @@ export default function ParticipantsPage() {
             <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Study ID <span className="text-rose-500">*</span></label>
-                  <input type="text" required value={formData.studyId}
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Study ID</label>
+                  <input type="text" value={formData.studyId}
                     onChange={(e) => setFormData({ ...formData, studyId: e.target.value })}
                     className="input-field" placeholder="e.g. SUBJ-001" />
                 </div>

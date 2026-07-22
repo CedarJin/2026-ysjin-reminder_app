@@ -24,7 +24,7 @@ export interface UpdateParticipantInput {
 }
 
 export function buildParticipantKey(studyId: string, email: string): string {
-  return `${studyId}:${email}`;
+  return studyId ? `${studyId}:${email}` : email;
 }
 
 export async function createParticipant(
