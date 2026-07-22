@@ -16,6 +16,7 @@ export interface UpdateParticipantInput {
   firstName?: string;
   lastName?: string;
   email?: string;
+  studyId?: string;
   timezone?: string;
   status?: Participant['status'];
   emailOptOut?: boolean;
@@ -78,10 +79,25 @@ export async function updateParticipant(
   if (input.firstName !== undefined) updateData.first_name = input.firstName;
   if (input.lastName !== undefined) updateData.last_name = input.lastName;
   if (input.email !== undefined) updateData.email = input.email;
+  if (input.studyId !== undefined) updateData.study_id = input.studyId;
   if (input.timezone !== undefined) updateData.timezone = input.timezone;
   if (input.status !== undefined) updateData.status = input.status;
   if (input.emailOptOut !== undefined) updateData.email_opt_out = input.emailOptOut;
   if (input.notes !== undefined) updateData.notes = input.notes;
+
+  // Rebuild participant_key if study_id or email changed
+  const newStudyId = input.studyId ?? before.study_id;
+  const newEmail = input.email ?? before.email;
+  if (input.studyId !== undefined || input.email !== undefined) {
+    const newKey = buildParticipantKey(newStudyId, newEmail);
+    if (newKey !== before.participant_key) {
+      const existing = await repos.getParticipantByKey(newKey);
+      if (existing && existing.id !== participantId) {
+        throw new Error(`A participant already exists for study ${newStudyId} and email ${newEmail}`);
+      }
+      updateData.participant_key = newKey;
+    }
+  }
 
   const participant = await repos.updateParticipant(participantId, updateData);
 

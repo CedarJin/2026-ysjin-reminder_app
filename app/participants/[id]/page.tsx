@@ -30,7 +30,7 @@ export default function ParticipantDetailPage() {
   const [loading, setLoading] = useState(true);
   const [savingStatus, setSavingStatus] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
-  const [editForm, setEditForm] = useState({ first_name: '', last_name: '', email: '', timezone: '' });
+  const [editForm, setEditForm] = useState({ first_name: '', last_name: '', email: '', study_id: '', timezone: '' });
   const [savingEdit, setSavingEdit] = useState(false);
 
   const refreshData = () => {
@@ -200,7 +200,7 @@ export default function ParticipantDetailPage() {
                 <option value="completed">Completed</option>
               </select>
               {savingStatus && <span className="text-xs text-slate-400 animate-pulse">saving...</span>}
-              <button onClick={() => { setShowEdit(!showEdit); if (!showEdit) setEditForm({ first_name: participant.first_name, last_name: participant.last_name, email: participant.email, timezone: participant.timezone }); }}
+              <button onClick={() => { setShowEdit(!showEdit); if (!showEdit) setEditForm({ first_name: participant.first_name, last_name: participant.last_name, email: participant.email, study_id: participant.study_id, timezone: participant.timezone }); }}
                 className={showEdit ? 'btn-secondary' : 'btn-ghost border border-slate-200'}>
                 <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
@@ -237,6 +237,12 @@ export default function ParticipantDetailPage() {
                   className="input-field" />
               </div>
               <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Study ID</label>
+                <input type="text" value={editForm.study_id}
+                  onChange={(e) => setEditForm({ ...editForm, study_id: e.target.value })}
+                  className="input-field" />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Timezone</label>
                 <input type="text" value={editForm.timezone}
                   onChange={(e) => setEditForm({ ...editForm, timezone: e.target.value })}
@@ -254,6 +260,7 @@ export default function ParticipantDetailPage() {
                         firstName: editForm.first_name,
                         lastName: editForm.last_name,
                         email: editForm.email,
+                        studyId: editForm.study_id,
                         timezone: editForm.timezone,
                       }),
                     });

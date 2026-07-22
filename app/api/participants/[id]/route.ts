@@ -28,6 +28,7 @@ export async function PATCH(
       firstName: body.firstName,
       lastName: body.lastName,
       email: body.email,
+      studyId: body.studyId,
       timezone: body.timezone,
       status: body.status,
       emailOptOut: body.emailOptOut,
