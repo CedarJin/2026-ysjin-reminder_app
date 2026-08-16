@@ -105,9 +105,15 @@ export async function sendReminderJob(
   // Determine CC list based on email type
   const isDietEmail =
     job.template_id?.includes('patternized') || job.template_id?.includes('habitual');
-  const cc = isDietEmail
+  let cc = isDietEmail
     ? ['ysjin@health.ucdavis.edu', 'qbsun@health.ucdavis.edu']
     : ['ysjin@health.ucdavis.edu', 'qbsun@health.ucdavis.edu', 'smgarcia@health.ucdavis.edu'];
+
+  // Test participants (study_id starts with "Test"): only CC the developer
+  // (ysjin), not the other coordinators, so test emails don't reach them.
+  if (participant.study_id?.startsWith('Test')) {
+    cc = ['ysjin@health.ucdavis.edu'];
+  }
 
   const disableSending =
     options.disableSending || process.env.DISABLE_EMAIL_SENDING === 'true';
