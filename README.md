@@ -174,7 +174,7 @@ npm run dev
 
 ### Database Management
 
-- Migration: `db/migrations/001_initial.sql` — run in Supabase SQL Editor
+- Migrations: run `db/migrations/001_initial.sql`, then `db/migrations/002_allow_canceled_reminder_history.sql` in Supabase SQL Editor. Then run `db/migrations/003_reschedule_email_snapshot.sql` before deploying the updated app. Existing databases need migrations 002 and 003; it preserves canceled reminder history while allowing a visit to return to an earlier date.
 - Seed rules: `npm run db:seed` — inserts reminder rules and email templates
 - Email templates: `templates/email_templates.json` — edit and re-seed after changes
 

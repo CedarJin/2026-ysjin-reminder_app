@@ -119,7 +119,7 @@ export async function updateVisit(
   const oldDatetime = beforeVisit.scheduled_datetime;
   const updatedVisit = await repos.updateVisit(visitId, updateData);
 
-  const result = await applyReschedule(repos, participant, updatedVisit, oldDatetime, actor);
+  const result = await applyReschedule(repos, participant, updatedVisit, oldDatetime, actor, beforeVisit);
 
   return {
     visit: result.visit,

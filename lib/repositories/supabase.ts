@@ -303,7 +303,7 @@ export const supabaseRepositories: Repositories = {
     }
 
     const { data, error } = await query.maybeSingle();
-    if (error) return null;
+    if (error) throw error;
     return (data as ReminderJob) || null;
   },
 

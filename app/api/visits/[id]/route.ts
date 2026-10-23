@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@/lib/errors';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseRepositories } from '@/lib/repositories/supabase';
 import { updateVisit } from '@/lib/services/visitService';
@@ -17,7 +18,7 @@ export async function PATCH(
 
     return NextResponse.json(result);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = getErrorMessage(error);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

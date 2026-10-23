@@ -192,6 +192,13 @@ export function createMemoryRepositories(seedRules: ReminderRule[] = []): Reposi
         created_at: now,
         updated_at: now,
       };
+      if (reminderJobs.some((existing) => existing.reminder_id === job.reminder_id || (
+        existing.status !== 'canceled' && job.status !== 'canceled' &&
+        job.visit_datetime_snapshot !== null && existing.visit_datetime_snapshot !== null &&
+        existing.participant_id === job.participant_id && existing.rule_id === job.rule_id &&
+        new Date(existing.scheduled_send_datetime).getTime() === new Date(job.scheduled_send_datetime).getTime() &&
+        new Date(existing.visit_datetime_snapshot).getTime() === new Date(job.visit_datetime_snapshot).getTime()
+      ))) throw new Error('Duplicate reminder job');
       reminderJobs.push(job);
       return job;
     },

@@ -190,6 +190,7 @@ export interface ReminderJob {
   visit_date_snapshot: string | null;
   visit_time_snapshot: string | null;
   visit_datetime_snapshot: string | null;
+  reschedule_variables?: Record<string, string> | null;
   status: 'scheduled' | 'pending_review' | 'sent' | 'failed' | 'canceled' | 'skipped';
   sent_at: string | null;
   canceled_at: string | null;

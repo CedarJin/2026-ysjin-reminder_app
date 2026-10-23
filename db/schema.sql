@@ -105,6 +105,7 @@ CREATE TABLE IF NOT EXISTS reminder_jobs (
   visit_date_snapshot DATE,
   visit_time_snapshot TEXT,
   visit_datetime_snapshot TIMESTAMPTZ,
+  reschedule_variables JSONB,
   status TEXT NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'pending_review', 'sent', 'failed', 'canceled', 'skipped')),
   sent_at TIMESTAMPTZ,
   canceled_at TIMESTAMPTZ,
@@ -112,9 +113,13 @@ CREATE TABLE IF NOT EXISTS reminder_jobs (
   provider_message_id TEXT,
   last_error TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE (participant_id, rule_id, scheduled_send_datetime, visit_datetime_snapshot)
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Canceled history must not block returning to a previously scheduled visit.
+CREATE UNIQUE INDEX reminder_jobs_active_schedule_unique
+  ON reminder_jobs (participant_id, rule_id, scheduled_send_datetime, visit_datetime_snapshot)
+  WHERE status <> 'canceled';
 
 CREATE INDEX idx_reminder_jobs_participant_id ON reminder_jobs(participant_id);
 CREATE INDEX idx_reminder_jobs_status ON reminder_jobs(status);

@@ -75,7 +75,7 @@ export function buildRescheduleVariableMap(
   participant: Participant,
   oldVisit: Visit,
   newVisit: Visit,
-  newEvents: CalculatedStudyEvent[]
+  newEvents: Pick<CalculatedStudyEvent, 'event_key' | 'event_date' | 'event_time'>[]
 ): TemplateVariables {
   const variables: TemplateVariables = {
     first_name: participant.first_name,
@@ -132,22 +132,16 @@ export function buildVariableMapForJob(
   events: CalculatedStudyEvent[]
 ): TemplateVariables {
   if (job.rule_id.includes('_reschedule')) {
-    // For reschedule emails, we need old and new visit info.
-    // The job snapshot stores the new visit. We look up the old visit from audit logs or use current.
-    // For simplicity, we use the current visits and build basic reschedule variables.
-    const newVisit = visits.find((v) => v.id === job.visit_id);
-    if (!newVisit) {
-      return buildVariableMap(participant, visits, events);
-    }
-
-    const oldVisit: Visit = {
-      ...newVisit,
-      scheduled_date: job.visit_date_snapshot || newVisit.scheduled_date,
-      scheduled_time: job.visit_time_snapshot || newVisit.scheduled_time,
-      scheduled_datetime: job.visit_datetime_snapshot || newVisit.scheduled_datetime,
+    // Historical jobs lack an old-time snapshot. Leave required variables missing
+    // so the sender rejects them instead of inventing an old appointment.
+    return {
+      first_name: participant.first_name,
+      last_name: participant.last_name,
+      study_id: participant.study_id,
+      email: participant.email,
+      timezone: participant.timezone,
+      ...job.reschedule_variables,
     };
-
-    return buildRescheduleVariableMap(participant, oldVisit, newVisit, events);
   }
 
   return buildVariableMap(participant, visits, events);

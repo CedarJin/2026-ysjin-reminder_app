@@ -3,6 +3,7 @@ import { Participant, Visit, ReminderJob, ReminderRule } from '../db/schema';
 import { buildCalculatedEvents } from './calculatedEvents';
 import { generateReminderJobs, calculateSendDatetime } from './reminderScheduler';
 import { logAudit } from './auditLogger';
+import { buildRescheduleVariableMap } from '../email/templateRenderer';
 import { splitDateTime } from '../timezone';
 
 export type RescheduleType = 'new_visit' | 'rescheduled' | 'unchanged' | 'removed_or_canceled';
@@ -47,10 +48,10 @@ export async function applyReschedule(
   participant: Participant,
   visit: Visit,
   oldDatetime: string | null,
-  actor: string = 'system'
+  actor: string = 'system',
+  previousVisit?: Visit
 ): Promise<ApplyRescheduleResult> {
   const visits = await repos.listVisitsByParticipantId(participant.id);
-  const existingVisit = visits.find((v) => v.id === visit.id);
   const otherVisits = visits.filter((v) => v.id !== visit.id);
 
   // 1. Recalculate study events
@@ -87,7 +88,9 @@ export async function applyReschedule(
 
   // 2. Cancel future unsent reminder jobs based on old visit datetime
   let canceledJobs = 0;
-  if (oldDatetime) {
+  const dateChanged = oldDatetime !== null &&
+    new Date(oldDatetime).getTime() !== new Date(visit.scheduled_datetime).getTime();
+  if (dateChanged && oldDatetime) {
     canceledJobs = await repos.cancelReminderJobs(
       participant.id,
       visit.id,
@@ -109,9 +112,9 @@ export async function applyReschedule(
 
   // 4. Create reschedule email if original scheduling email was already sent
   let rescheduleEmailJob: ReminderJob | null = null;
-  const schedulingRule = relevantRules.find((r) => r.trigger_type === 'send_when_new_visit_scheduled');
+  const schedulingRule = relevantRules.find((r) => r.reschedule_template_id);
 
-  if (schedulingRule && oldDatetime) {
+  if (schedulingRule && dateChanged && oldDatetime) {
     const sentJobs = await repos.listReminderJobs({
       participantId: participant.id,
       status: 'sent',
@@ -121,10 +124,12 @@ export async function applyReschedule(
       (j) =>
         j.rule_id === schedulingRule.rule_id &&
         j.visit_id === visit.id &&
-        j.visit_datetime_snapshot === oldDatetime
+        j.visit_datetime_snapshot !== null &&
+        new Date(j.visit_datetime_snapshot).getTime() === new Date(oldDatetime).getTime()
     );
 
     if (originalSchedulingJob && schedulingRule.reschedule_template_id) {
+      if (!previousVisit) throw new Error('Previous visit is required for a reschedule email');
       const now = new Date();
       const { date, time } = splitDateTime(now, participant.timezone);
 
@@ -133,13 +138,17 @@ export async function applyReschedule(
         participant_id: participant.id,
         study_id: participant.study_id,
         visit_id: visit.id,
-        phase: `${visit.visit_day}`,
+        phase: schedulingRule.phase,
         rule_id: `${schedulingRule.rule_id}_reschedule`,
         email_name: `Rescheduling: Study Day ${visit.visit_day}`,
         template_id: schedulingRule.reschedule_template_id,
         scheduled_send_date: date,
         scheduled_send_time: time,
         scheduled_send_datetime: now.toISOString(),
+        reschedule_variables: buildRescheduleVariableMap(
+          participant, previousVisit, visit,
+          events.filter(event => event.source_visit_day === visit.visit_day)
+        ),
         visit_date_snapshot: visit.scheduled_date,
         visit_time_snapshot: visit.scheduled_time,
         visit_datetime_snapshot: visit.scheduled_datetime,
@@ -160,8 +169,8 @@ export async function applyReschedule(
     entityType: 'visit',
     entityId: visit.id,
     participantId: participant.id,
-    before: existingVisit
-      ? (existingVisit as unknown as Record<string, unknown>)
+    before: previousVisit
+      ? (previousVisit as unknown as Record<string, unknown>)
       : null,
     after: visit as unknown as Record<string, unknown>,
   });

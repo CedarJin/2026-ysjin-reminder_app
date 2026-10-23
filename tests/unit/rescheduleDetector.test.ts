@@ -1,3 +1,4 @@
+import { buildVariableMapForJob, renderTemplate, validateVariables } from '../../lib/email/templateRenderer';
 import { describe, it, expect } from 'vitest';
 import { createMemoryRepositories } from '../../lib/repositories/memory';
 import { createParticipant } from '../../lib/services/participantService';
@@ -74,6 +75,73 @@ describe('rescheduleDetector', () => {
   });
 
   describe('updateVisit reschedule flow', () => {
+    it.each([0, 90, 180] as const)('freezes old and new times for Day %s emails', async (visitDay) => {
+      const repos = await setup();
+      const participant = await createParticipant(repos, {
+        studyId: 'STUDY-1', firstName: 'Test', lastName: 'Participant',
+        email: 'test@example.com', timezone: 'America/Los_Angeles',
+      });
+      const { visit } = await createVisit(repos, {
+        participantId: participant.id, studyId: participant.study_id,
+        visitDay, visitName: `Day ${visitDay}`, scheduledDate: '2026-10-30', scheduledTime: '11:00',
+      });
+      const jobs = await repos.listReminderJobs({ participantId: participant.id });
+      const scheduling = jobs.find(j => j.rule_id === `day${visitDay}_scheduling`)!;
+      await repos.updateReminderJob(scheduling.id, { status: 'sent' });
+      const result = await updateVisit(repos, visit.id, { scheduledDate: '2026-11-09', scheduledTime: '09:30' });
+      const job = result.rescheduleEmailJob!;
+      expect(job).not.toBeNull();
+      // Even if the live appointment changes again, this message describes its own transition.
+      const laterVisit = { ...result.visit, scheduled_date: '2026-12-01', scheduled_time: '14:00' };
+      const variables = buildVariableMapForJob(job, participant, [laterVisit], []);
+      const template = 'From {{old_visit_date}} {{old_visit_time}} to {{new_visit_date}} {{new_visit_time}}';
+      expect(renderTemplate(template, variables)).toBe('From 2026-10-30 11:00 to 2026-11-09 09:30');
+      if (visitDay !== 180) {
+        const events = await repos.listCalculatedEventsByParticipantId(participant.id);
+        expect(variables.new_patternized_diet_start_date).toBe(
+          events.find(event => event.event_key === `day${visitDay}_patternized_diet_start`)!.event_date
+        );
+      }
+      const legacyVariables = buildVariableMapForJob({ ...job, reschedule_variables: null }, participant, [laterVisit], []);
+      expect(validateVariables(template, legacyVariables).valid).toBe(false);
+      expect(legacyVariables.old_visit_date).toBeUndefined();
+    });
+
+    it('returns Day 180 to a canceled date and leaves reminders intact on retry', async () => {
+      const repos = await setup();
+      const participant = await createParticipant(repos, {
+        studyId: 'STUDY-1', firstName: 'Test', lastName: 'Participant',
+        email: 'test@example.com', timezone: 'America/Los_Angeles',
+      });
+      const { visit } = await createVisit(repos, {
+        participantId: participant.id, studyId: participant.study_id,
+        visitDay: 180, visitName: 'Day 180', scheduledDate: '2026-11-09', scheduledTime: '09:30',
+      });
+      await updateVisit(repos, visit.id, { scheduledDate: '2026-10-30', scheduledTime: '11:00' });
+      const jobs = await repos.listReminderJobs({ participantId: participant.id });
+      const scheduling = jobs.find(j => j.rule_id === 'day180_scheduling' && j.status === 'scheduled')!;
+      // PostgreSQL returns timestamps with +00:00 instead of .000Z.
+      await repos.updateReminderJob(scheduling.id, {
+        status: 'sent', visit_datetime_snapshot: scheduling.visit_datetime_snapshot!.replace('.000Z', '+00:00'),
+      });
+      const result = await updateVisit(repos, visit.id, {
+        scheduledDate: '2026-11-09', scheduledTime: '09:30',
+      });
+      expect(result.createdJobs).toHaveLength(2);
+      expect(result.rescheduleEmailJob?.template_id).toBe('day180_rescheduling');
+      expect(result.rescheduleEmailJob?.phase).toBe('day180');
+      const beforeRetry = await repos.listReminderJobs({ participantId: participant.id });
+      const retry = await updateVisit(repos, visit.id, {
+        scheduledDate: '2026-11-09', scheduledTime: '09:30',
+      });
+      expect(retry.canceledJobs).toBe(0);
+      expect(retry.createdJobs).toHaveLength(0);
+      expect(retry.rescheduleEmailJob).toBeNull();
+      expect(await repos.listReminderJobs({ participantId: participant.id })).toEqual(beforeRetry);
+      await expect(repos.createReminderJob({ ...result.createdJobs[0], reminder_id: 'duplicate' }))
+        .rejects.toThrow('Duplicate reminder job');
+    });
+
     it('cancels old Day 0 reminders and creates new ones on reschedule', async () => {
       const repos = await setup();
 
