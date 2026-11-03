@@ -149,7 +149,7 @@ This system manages study participant timelines, sends automated email reminders
 - **Participants** — view, add, filter, and manage all study participants.
 - **Schedule Visits** — when a new participant is enrolled, schedule their Day 0 visit on their detail page. The system automatically generates all necessary reminders.
 - **Reminders** — review all pending and sent reminders across participants. Use this page to find failed or overdue emails.
-- **Rescheduling** — if a participant needs to change their visit date, use the schedule form again on their detail page. The system detects it as a reschedule and sends an updated notification.
+- **Rescheduling** — if a participant needs to change their visit date, use the schedule form again on their detail page. The system cancels old reminders and generates a new scheduling confirmation using the existing send-time rules, without a separate reschedule email.
 
 ### Important Notes
 

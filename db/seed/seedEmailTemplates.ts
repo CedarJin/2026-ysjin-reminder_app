@@ -26,7 +26,7 @@ export async function seedEmailTemplates() {
     email_name: template.email_name,
     subject: template.subject,
     body: template.body.replace('{{email_signature}}', footer),
-    active: true,
+    active: !template.template_id.endsWith('_rescheduling'),
   }));
 
   const { error } = await supabase

@@ -36,6 +36,12 @@ export async function sendReminderJob(
     return { success: false, status: 'failed', error: `Job status is ${job.status}` };
   }
 
+  // Also suppress legacy queued reschedule emails and manual retries.
+  if (job.rule_id.endsWith('_reschedule') || job.template_id.endsWith('_rescheduling')) {
+    await markJobSkipped(repos, jobId, 'Separate reschedule emails are disabled');
+    return { success: false, status: 'skipped', error: 'Separate reschedule emails are disabled' };
+  }
+
   const participant = await repos.getParticipantById(job.participant_id);
   if (!participant) {
     await markJobFailed(repos, jobId, 'Participant not found');

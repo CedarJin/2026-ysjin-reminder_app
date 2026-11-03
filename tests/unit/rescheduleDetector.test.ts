@@ -1,4 +1,3 @@
-import { buildVariableMapForJob, renderTemplate, validateVariables } from '../../lib/email/templateRenderer';
 import { describe, it, expect } from 'vitest';
 import { createMemoryRepositories } from '../../lib/repositories/memory';
 import { createParticipant } from '../../lib/services/participantService';
@@ -75,7 +74,7 @@ describe('rescheduleDetector', () => {
   });
 
   describe('updateVisit reschedule flow', () => {
-    it.each([0, 90, 180] as const)('freezes old and new times for Day %s emails', async (visitDay) => {
+    it.each([0, 90, 180] as const)('creates only a new scheduling confirmation for Day %s', async (visitDay) => {
       const repos = await setup();
       const participant = await createParticipant(repos, {
         studyId: 'STUDY-1', firstName: 'Test', lastName: 'Participant',
@@ -89,22 +88,13 @@ describe('rescheduleDetector', () => {
       const scheduling = jobs.find(j => j.rule_id === `day${visitDay}_scheduling`)!;
       await repos.updateReminderJob(scheduling.id, { status: 'sent' });
       const result = await updateVisit(repos, visit.id, { scheduledDate: '2026-11-09', scheduledTime: '09:30' });
-      const job = result.rescheduleEmailJob!;
-      expect(job).not.toBeNull();
-      // Even if the live appointment changes again, this message describes its own transition.
-      const laterVisit = { ...result.visit, scheduled_date: '2026-12-01', scheduled_time: '14:00' };
-      const variables = buildVariableMapForJob(job, participant, [laterVisit], []);
-      const template = 'From {{old_visit_date}} {{old_visit_time}} to {{new_visit_date}} {{new_visit_time}}';
-      expect(renderTemplate(template, variables)).toBe('From 2026-10-30 11:00 to 2026-11-09 09:30');
-      if (visitDay !== 180) {
-        const events = await repos.listCalculatedEventsByParticipantId(participant.id);
-        expect(variables.new_patternized_diet_start_date).toBe(
-          events.find(event => event.event_key === `day${visitDay}_patternized_diet_start`)!.event_date
-        );
-      }
-      const legacyVariables = buildVariableMapForJob({ ...job, reschedule_variables: null }, participant, [laterVisit], []);
-      expect(validateVariables(template, legacyVariables).valid).toBe(false);
-      expect(legacyVariables.old_visit_date).toBeUndefined();
+      expect(result.rescheduleEmailJob).toBeNull();
+      const confirmations = result.createdJobs.filter(j => j.template_id === `day${visitDay}_scheduling`);
+      expect(confirmations).toHaveLength(1);
+      expect(confirmations[0].visit_date_snapshot).toBe('2026-11-09');
+      expect(confirmations[0].visit_time_snapshot).toBe('09:30');
+      expect((await repos.listReminderJobs({ participantId: participant.id }))
+        .some(j => j.template_id.endsWith('_rescheduling'))).toBe(false);
     });
 
     it('returns Day 180 to a canceled date and leaves reminders intact on retry', async () => {
@@ -128,8 +118,7 @@ describe('rescheduleDetector', () => {
         scheduledDate: '2026-11-09', scheduledTime: '09:30',
       });
       expect(result.createdJobs).toHaveLength(2);
-      expect(result.rescheduleEmailJob?.template_id).toBe('day180_rescheduling');
-      expect(result.rescheduleEmailJob?.phase).toBe('day180');
+      expect(result.rescheduleEmailJob).toBeNull();
       const beforeRetry = await repos.listReminderJobs({ participantId: participant.id });
       const retry = await updateVisit(repos, visit.id, {
         scheduledDate: '2026-11-09', scheduledTime: '09:30',
@@ -188,7 +177,7 @@ describe('rescheduleDetector', () => {
       expect(scheduled.length).toBeGreaterThan(0);
     });
 
-    it('creates a reschedule email when original scheduling email was sent', async () => {
+    it('does not create a separate reschedule email when original scheduling email was sent', async () => {
       const repos = await setup();
 
       const participant = await createParticipant(repos, {
@@ -221,8 +210,7 @@ describe('rescheduleDetector', () => {
         scheduledTime: '10:00',
       });
 
-      expect(rescheduleEmailJob).not.toBeNull();
-      expect(rescheduleEmailJob!.template_id).toBe('day0_rescheduling');
+      expect(rescheduleEmailJob).toBeNull();
     });
   });
 });

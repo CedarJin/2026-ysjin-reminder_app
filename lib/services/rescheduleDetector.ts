@@ -3,8 +3,6 @@ import { Participant, Visit, ReminderJob, ReminderRule } from '../db/schema';
 import { buildCalculatedEvents } from './calculatedEvents';
 import { generateReminderJobs, calculateSendDatetime } from './reminderScheduler';
 import { logAudit } from './auditLogger';
-import { buildRescheduleVariableMap } from '../email/templateRenderer';
-import { splitDateTime } from '../timezone';
 
 export type RescheduleType = 'new_visit' | 'rescheduled' | 'unchanged' | 'removed_or_canceled';
 
@@ -110,57 +108,9 @@ export async function applyReschedule(
     relevantRules
   );
 
-  // 4. Create reschedule email if original scheduling email was already sent
-  let rescheduleEmailJob: ReminderJob | null = null;
-  const schedulingRule = relevantRules.find((r) => r.reschedule_template_id);
-
-  if (schedulingRule && dateChanged && oldDatetime) {
-    const sentJobs = await repos.listReminderJobs({
-      participantId: participant.id,
-      status: 'sent',
-    });
-
-    const originalSchedulingJob = sentJobs.find(
-      (j) =>
-        j.rule_id === schedulingRule.rule_id &&
-        j.visit_id === visit.id &&
-        j.visit_datetime_snapshot !== null &&
-        new Date(j.visit_datetime_snapshot).getTime() === new Date(oldDatetime).getTime()
-    );
-
-    if (originalSchedulingJob && schedulingRule.reschedule_template_id) {
-      if (!previousVisit) throw new Error('Previous visit is required for a reschedule email');
-      const now = new Date();
-      const { date, time } = splitDateTime(now, participant.timezone);
-
-      rescheduleEmailJob = await repos.createReminderJob({
-        reminder_id: `reschedule_${Date.now()}_${visit.visit_day}`,
-        participant_id: participant.id,
-        study_id: participant.study_id,
-        visit_id: visit.id,
-        phase: schedulingRule.phase,
-        rule_id: `${schedulingRule.rule_id}_reschedule`,
-        email_name: `Rescheduling: Study Day ${visit.visit_day}`,
-        template_id: schedulingRule.reschedule_template_id,
-        scheduled_send_date: date,
-        scheduled_send_time: time,
-        scheduled_send_datetime: now.toISOString(),
-        reschedule_variables: buildRescheduleVariableMap(
-          participant, previousVisit, visit,
-          events.filter(event => event.source_visit_day === visit.visit_day)
-        ),
-        visit_date_snapshot: visit.scheduled_date,
-        visit_time_snapshot: visit.scheduled_time,
-        visit_datetime_snapshot: visit.scheduled_datetime,
-        status: 'scheduled',
-        sent_at: null,
-        canceled_at: null,
-        canceled_reason: null,
-        provider_message_id: null,
-        last_error: null,
-      });
-    }
-  }
+  // Scheduling jobs above replace the old confirmation. Do not send a separate
+  // reschedule email, even when the previous confirmation has already been sent.
+  const rescheduleEmailJob = null;
 
   // 5. Audit log
   await logAudit(repos, {
